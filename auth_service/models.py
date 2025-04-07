@@ -14,5 +14,5 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), onupdate=func.now())
 
-    # Связь с постами
-    posts: Mapped[list['Post']] = relationship('Post', back_populates='author')
+    # # Связь с постами
+    # posts: Mapped[list['Post']] = relationship('Post', back_populates='author')

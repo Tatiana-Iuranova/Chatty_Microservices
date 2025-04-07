@@ -1,29 +1,31 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import asyncio
 from logging.config import fileConfig
-
-from sqlalchemy import pool
-from sqlalchemy.ext.asyncio import async_engine_from_config
+from sqlalchemy.ext.asyncio import create_async_engine
 from alembic import context
 from config import settings
-from models import Base
+from models import Base  # обязательно импортировать Base из models.py
 
-
-# Загружаем конфигурацию Alembic
+# Alembic Config
 config = context.config
+
 config.set_main_option("sqlalchemy.url", settings.async_database_url)
 
-# Логирование
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Метаданные моделей
+# Мета-данные моделей
 target_metadata = Base.metadata
 
 
-def run_migrations_offline():
-    """Запускает Alembic в оффлайн-режиме (без подключения к БД)."""
+def run_migrations_offline() -> None:
+    """Run migrations in 'offline' mode."""
+    url = config.get_main_option("sqlalchemy.url")
     context.configure(
-        url=settings.async_database_url,
+        url=url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -34,19 +36,20 @@ def run_migrations_offline():
 
 
 def do_run_migrations(connection):
-    """Настройка контекста Alembic и выполнение миграций."""
-    context.configure(connection=connection, target_metadata=target_metadata)
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+    )
 
     with context.begin_transaction():
         context.run_migrations()
 
 
-async def run_async_migrations():
-    """Запуск Alembic в асинхронном режиме."""
-    connectable = async_engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
+async def run_migrations_online():
+    """Run migrations in 'online' mode."""
+    connectable = create_async_engine(
+        settings.async_database_url,
+        poolclass=None,
     )
 
     async with connectable.connect() as connection:
@@ -55,13 +58,7 @@ async def run_async_migrations():
     await connectable.dispose()
 
 
-def run_migrations_online():
-    """Запускает Alembic в онлайн-режиме с подключением к БД."""
-    asyncio.run(run_async_migrations())
-
-
-# Определяем режим работы и запускаем миграции
 if context.is_offline_mode():
     run_migrations_offline()
 else:
-    run_migrations_online()
+    asyncio.run(run_migrations_online())
