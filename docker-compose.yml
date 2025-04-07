@@ -10,36 +10,36 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
-  lostfound_service:
+  posts_service:
     build:
-      context: ./lost_found_service
+      context: ./posts_service
       dockerfile: ./Dockerfile
-    container_name: lostfound_service
+    container_name: posts_service
     ports:
       - "8000:8000"
     environment:
-      DB_HOST: lostfound_db
+      DB_HOST: Posts_service_db # name of container
       DB_PORT: 5432
-      DB_NAME: LostAndFoundDB_ref
+      DB_NAME: posts_db # name of DB in pgAdmin
       DB_USER: postgres
       DB_PASSWORD: postgres
     volumes:
-      - ./lost_found_service:/app
+      - ./posts_service:/app
     depends_on:
-      - lostfound_db
+      - posts_db
       - rabbitmq
 
-  lostfound_db:
+  posts_db:
     image: postgres:15.3
-    container_name: lostfound_db
+    container_name: Posts_service_db
     environment:
-      POSTGRES_DB: LostAndFoundDB_ref
+      POSTGRES_DB: posts_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
     volumes:
-      - lostfound_db_data:/var/lib/postgresql/data
+      - posts_db_data:/var/lib/postgresql/data
 
   auth_service:
     build:
@@ -71,36 +71,36 @@ services:
     volumes:
       - auth_db_data:/var/lib/postgresql/data
 
-  auction_service:
+  subscription_service:
     build:
-      context: ./auction_service
+      context: ./subscription_service
       dockerfile: ./Dockerfile
-    container_name: auction_service
+    container_name: subscription_service
     ports:
       - "8004:8004"
     environment:
-      DB_HOST: auction_db
+      DB_HOST: subscription_service_db
       DB_PORT: 5432
-      DB_NAME: AuctionDB
+      DB_NAME: subscription_db
       DB_USER: postgres
       DB_PASSWORD: postgres
     volumes:
-      - ./auction_service:/app
+      - ./subscription_service:/app
     depends_on:
       - rabbitmq
-      - auction_db
+      - subscription_db
 
-  auction_db:
+  subscription_db:
     image: postgres:15.3
-    container_name: auction_db
+    container_name: subscription_service_db
     environment:
-      POSTGRES_DB: AuctionDB
+      POSTGRES_DB: subscription_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
       - "5434:5432"
     volumes:
-      - auction_db_data:/var/lib/postgresql/data
+      - subscription_db_data:/var/lib/postgresql/data
 
 #  nginx:
 #    image: nginx:latest
@@ -115,7 +115,7 @@ services:
 #      - auction_service
 
 volumes:
-  lostfound_db_data:
+  posts_db_data:
   auth_db_data:
-  auction_db_data:
+  subscription_db_data:
   rabbitmq_data:
