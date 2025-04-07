@@ -1,8 +1,6 @@
 #!/bin/bash
-
 # Выход при ошибке
 set -e
-
 # Ожидаем запуск базы данных
 echo "Ждём базу данных на $DB_HOST:$DB_PORT..."
 while ! nc -z $DB_HOST $DB_PORT; do
