@@ -14,11 +14,16 @@ router = APIRouter()
 ACCESS_TOKEN_EXPIRE_MINUTES = 30  # можно также вынести в настройки
 
 
-@router.post("/token")
+@router.post("/token", description="Получение access token для аутентификации пользователя")
 async def login_for_access_token(
         form_data: OAuth2PasswordRequestForm = Depends(),
         db: AsyncSession = Depends(get_db)
 ):
+    """
+    Этот эндпоинт используется для получения токена для аутентификации.
+    Пользователь должен предоставить свои логин и пароль.
+    Если данные корректны, возвращается access token.
+    """
     user = await authenticate_user(db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(401, "Неверные логин или пароль")
@@ -32,8 +37,12 @@ async def login_for_access_token(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@router.get("/verify")
+@router.get("/verify", description="Проверка валидности токена пользователя")
 async def verify_token(
         user: models.User = Depends(get_current_user)
 ):
-     return {"username": user.username}
+    """
+    Этот эндпоинт позволяет проверить токен пользователя.
+    Если токен валиден, возвращается имя пользователя.
+    """
+    return {"username": user.username}

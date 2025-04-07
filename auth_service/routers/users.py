@@ -9,7 +9,7 @@ from auth_service.utils.security import get_password_hash
 router = APIRouter()
 
 
-@router.post("/register", response_model=schemas.UserResponse)
+@router.post("/register", response_model=schemas.UserResponse, description="Регистрация нового пользователя")
 async def create_user(user_in: schemas.UserCreate, db: AsyncSession = Depends(get_db)):
     # Проверяем, нет ли такого пользователя
     existing_user = await db.execute(select(models.User).where(models.User.username == user_in.username))
@@ -17,6 +17,13 @@ async def create_user(user_in: schemas.UserCreate, db: AsyncSession = Depends(ge
 
     if existing_user:
         raise HTTPException(status_code=400, detail="Такой пользователь уже существует")
+    existing_email = await db.execute(
+        select(models.User).where(models.User.email == user_in.email)
+    )
+    existing_email = existing_email.scalar_one_or_none()
+
+    if existing_email:
+        raise HTTPException(status_code=400, detail="Этот email уже зарегистрирован")
 
     # Создаем пользователя
     user = models.User(
@@ -31,7 +38,7 @@ async def create_user(user_in: schemas.UserCreate, db: AsyncSession = Depends(ge
 
     return schemas.UserResponse(id=user.id, username=user.username, email=user.email)
 
-@router.patch("/users/{user_id}/activate", response_model=schemas.UserResponse)
+@router.patch("/users/{user_id}/activate", response_model=schemas.UserResponse, description="Активация пользователя")
 async def activate_user(user_id: int, db: AsyncSession = Depends(get_db)):
     # Получаем пользователя по ID
     user = await db.execute(select(models.User).filter(models.User.id == user_id))
@@ -39,6 +46,9 @@ async def activate_user(user_id: int, db: AsyncSession = Depends(get_db)):
 
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+
+    if user.is_active:
+        raise HTTPException(status_code=400, detail="Пользователь уже активирован")
 
     # Активируем пользователя
     user.is_active = True
