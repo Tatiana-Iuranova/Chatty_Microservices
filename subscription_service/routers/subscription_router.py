@@ -1,17 +1,18 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query, Path
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete
+from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
-from subscription_service.schemas import SubscriptionResponse
+from ..schemas import SubscriptionResponse
 from subscription_service.models import Subscription
 from subscription_service.database import get_db
 import httpx
 
 router = APIRouter()
 
-# Бизнес-логика
+
+# ----------- Бизнес-логика -----------
+
 async def follow(db: AsyncSession, user_id: int, follower_id: int) -> SubscriptionResponse:
-    """Добавляет подписку (follower_id подписывается на user_id)."""
     if user_id == follower_id:
         raise ValueError("Нельзя подписаться на себя")
 
@@ -25,8 +26,8 @@ async def follow(db: AsyncSession, user_id: int, follower_id: int) -> Subscripti
         await db.rollback()
         raise ValueError("Вы уже подписаны")
 
+
 async def unfollow(db: AsyncSession, user_id: int, follower_id: int) -> dict:
-    """Удаляет подписку (follower_id отписывается от user_id)."""
     result = await db.execute(
         select(Subscription).filter_by(user_id=user_id, follower_id=follower_id)
     )
@@ -37,42 +38,83 @@ async def unfollow(db: AsyncSession, user_id: int, follower_id: int) -> dict:
 
     await db.delete(subscription)
     await db.commit()
-
     return {"message": "Подписка удалена"}
 
-# Эндпоинты
-@router.post("/subscribe/{user_id}")
-async def subscribe(user_id: int, follower_id: int, db: AsyncSession = Depends(get_db)):
+
+# ----------- Эндпоинты -----------
+
+@router.post(
+    "/subscribe/{user_id}",
+    response_model=SubscriptionResponse,
+    summary="Подписаться на пользователя",
+    description="Позволяет пользователю подписаться на другого пользователя"
+)
+async def subscribe(
+    user_id: int = Path(..., description="ID пользователя, на которого подписываются"),
+    follower_id: int = Query(..., description="ID пользователя, который подписывается"),
+    db: AsyncSession = Depends(get_db)
+):
     try:
         return await follow(db, user_id, follower_id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.delete("/unsubscribe/{user_id}")
-async def unsubscribe(user_id: int, follower_id: int, db: AsyncSession = Depends(get_db)):
+
+@router.delete(
+    "/unsubscribe/{user_id}",
+    summary="Отписаться от пользователя",
+    description="Позволяет пользователю отписаться от другого пользователя"
+)
+async def unsubscribe(
+    user_id: int = Path(..., description="ID пользователя, от которого отписываются"),
+    follower_id: int = Query(..., description="ID пользователя, который отписывается"),
+    db: AsyncSession = Depends(get_db)
+):
     try:
         return await unfollow(db, user_id, follower_id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/subscriptions")
-async def subscriptions(follower_id: int, db: AsyncSession = Depends(get_db)):
+
+@router.get(
+    "/subscriptions",
+    summary="Список подписок пользователя",
+    description="Получение ID пользователей, на которых подписан пользователь"
+)
+async def subscriptions(
+    follower_id: int = Query(..., description="ID подписчика"),
+    db: AsyncSession = Depends(get_db)
+):
     result = await db.execute(
         select(Subscription.user_id).where(Subscription.follower_id == follower_id)
     )
     return result.scalars().all()
 
-@router.get("/followers")
-async def followers(user_id: int, db: AsyncSession = Depends(get_db)):
+
+@router.get(
+    "/followers",
+    summary="Список подписчиков пользователя",
+    description="Получение ID пользователей, которые подписаны на пользователя"
+)
+async def followers(
+    user_id: int = Query(..., description="ID пользователя"),
+    db: AsyncSession = Depends(get_db)
+):
     result = await db.execute(
         select(Subscription.follower_id).where(Subscription.user_id == user_id)
     )
     return result.scalars().all()
 
 
-@router.get("/feed/{user_id}")
-async def get_feed(user_id: int, db: AsyncSession = Depends(get_db)):
-    # 1. Получаем ID подписок
+@router.get(
+    "/feed/{user_id}",
+    summary="Лента постов пользователя",
+    description="Получает посты от пользователей, на которых подписан пользователь"
+)
+async def get_feed(
+    user_id: int = Path(..., description="ID пользователя"),
+    db: AsyncSession = Depends(get_db)
+):
     result = await db.execute(
         text("SELECT follower_id FROM subscriptions WHERE user_id = :user_id"),
         {"user_id": user_id}
@@ -82,11 +124,10 @@ async def get_feed(user_id: int, db: AsyncSession = Depends(get_db)):
     if not follower_ids:
         return {"posts": []}
 
-    # 2. Делаем запрос к Post Service
     try:
         async with httpx.AsyncClient() as client:
             response = await client.post(
-                "http://post_service/posts/by_users",  # URL Post-сервиса
+                "http://post_service/posts/by_users",
                 json={"user_ids": follower_ids}
             )
             response.raise_for_status()
@@ -94,7 +135,5 @@ async def get_feed(user_id: int, db: AsyncSession = Depends(get_db)):
     except httpx.HTTPError as e:
         return {"error": f"Post service error: {str(e)}"}
 
-    # 3. Сортировка (если надо)
-    sorted_posts = sorted(posts, key=lambda x: x["created_at"], reverse=True)
-
+    sorted_posts = sorted(posts, key=lambda x: x.get("created_at", ""), reverse=True)
     return {"posts": sorted_posts}
