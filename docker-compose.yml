@@ -10,36 +10,51 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
-  posts_service:
+  tests:
     build:
-      context: ./posts_service
-      dockerfile: ./Dockerfile
-    container_name: posts_service
-    ports:
-      - "8000:8000"
-    environment:
-      DB_HOST: Posts_service_db # name of container
-      DB_PORT: 5432
-      DB_NAME: posts_db # name of DB in pgAdmin
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-    volumes:
-      - ./posts_service:/app
+      context: ./tests  # Убедись, что здесь лежит Dockerfile и тесты
+      dockerfile: Dockerfile
+    container_name: tests
     depends_on:
-      - posts_db
-      - rabbitmq
-
-  posts_db:
-    image: postgres:15.3
-    container_name: Posts_service_db
+      - auth_service
+#      - posts_service
+      - subscription_service
     environment:
-      POSTGRES_DB: posts_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - posts_db_data:/var/lib/postgresql/data
+      BASE_URL_AUTH: http://auth_service:8003
+#      BASE_URL_POSTS: http://posts_service:8000
+      BASE_URL_SUBSCRIPTION: http://subscription_service:8004
+    command: [ "pytest", "--tb=short", "-q" ]
+
+#  posts_service:
+#    build:
+#      context: ./posts_service
+#      dockerfile: ./Dockerfile
+#    container_name: posts_service
+#    ports:
+#      - "8000:8000"
+#    environment:
+#      DB_HOST: Posts_service_db # name of container
+#      DB_PORT: 5432
+#      DB_NAME: posts_db # name of DB in pgAdmin
+#      DB_USER: postgres
+#      DB_PASSWORD: postgres
+#    volumes:
+#      - ./posts_service:/app
+#    depends_on:
+#      - posts_db
+#      - rabbitmq
+#
+#  posts_db:
+#    image: postgres:15.3
+#    container_name: Posts_service_db
+#    environment:
+#      POSTGRES_DB: posts_db
+#      POSTGRES_USER: postgres
+#      POSTGRES_PASSWORD: postgres
+#    ports:
+#      - "5432:5432"
+#    volumes:
+#      - posts_db_data:/var/lib/postgresql/data
 
   auth_service:
     build:
@@ -115,7 +130,7 @@ services:
 #      - auction_service
 
 volumes:
-  posts_db_data:
+#  posts_db_data:
   auth_db_data:
   subscription_db_data:
   rabbitmq_data:
