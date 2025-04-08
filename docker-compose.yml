@@ -13,7 +13,7 @@ services:
   posts_service:
     build:
       context: ./posts_service
-      dockerfile: ./Dockerfile
+      dockerfile: Dockerfile
     container_name: posts_service
     ports:
       - "8000:8000"
@@ -44,7 +44,7 @@ services:
   auth_service:
     build:
       context: ./auth_service
-      dockerfile: ./Dockerfile
+      dockerfile: Dockerfile
     container_name: auth_service
     ports:
       - "8003:8003"
@@ -74,7 +74,7 @@ services:
   subscription_service:
     build:
       context: ./subscription_service
-      dockerfile: ./Dockerfile
+      dockerfile: Dockerfile
     container_name: subscription_service
     ports:
       - "8004:8004"
@@ -84,11 +84,14 @@ services:
       DB_NAME: subscription_db
       DB_USER: postgres
       DB_PASSWORD: postgres
+      PYTHONPATH: /app
+    working_dir: /app
     volumes:
       - ./subscription_service:/app
     depends_on:
       - rabbitmq
       - subscription_db
+    command: uvicorn main:app --host 0.0.0.0 --port 8004 --reload
 
   subscription_db:
     image: postgres:15.3
