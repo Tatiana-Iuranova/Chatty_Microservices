@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Path
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
-from ..schemas import SubscriptionResponse
+from subscription_service.schemas import SubscriptionResponse
 from subscription_service.models import Subscription
 from subscription_service.database import get_db
 import httpx

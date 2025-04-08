@@ -1,4 +1,7 @@
 #!/bin/bash
+
+# Устанавливаем PYTHONPATH
+PYTHONPATH=/app exec uvicorn app.main:app --host 0.0.0.0 --port 8004 --reload
 # Выход при ошибке
 set -e
 # Ожидаем запуск базы данных
