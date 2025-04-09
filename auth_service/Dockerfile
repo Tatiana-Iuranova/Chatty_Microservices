@@ -1,9 +1,12 @@
 FROM python:3.11-slim
-
 ENV PYTHONUNBUFFERED=1
+
 
 WORKDIR /app
 COPY . /app
+ENV PYTHONPATH="/app"
+RUN apt-get update && apt-get install -y bash
+
 
 RUN apt-get update && apt-get install -y netcat-openbsd && apt-get clean
 

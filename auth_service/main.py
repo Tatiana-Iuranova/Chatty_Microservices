@@ -1,7 +1,11 @@
+import sys
+sys.path.append('/app')
 from fastapi import FastAPI
+
 from config import settings
 from routers.auth import router as auth_router
 from routers.users import router as users_router
+from database import get_db
 
 
 app = FastAPI(title=settings.APP_NAME, debug=settings.DEBUG)

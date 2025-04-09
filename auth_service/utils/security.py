@@ -6,8 +6,8 @@ from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from auth_service import models
-from auth_service.database import get_db
+from models import User
+from database import get_db
 
 
 oauth2_scheme = HTTPBearer()
