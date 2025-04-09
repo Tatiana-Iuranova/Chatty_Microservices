@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from alembic import context
 from config import settings
 from models import Base  # обязательно импортировать Base из models.py
-
+from models import Subscription
 # Alembic Config
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.async_database_url)
