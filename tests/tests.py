@@ -1,5 +1,6 @@
 import pytest
 import httpx
+from httpx import AsyncClient
 
 @pytest.mark.asyncio
 async def test_user_flow(auth_client, posts_client, subscription_client):
