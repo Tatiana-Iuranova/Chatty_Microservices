@@ -1,4 +1,4 @@
-version: "3.8"
+version: '3.8'
 
 services:
 
@@ -79,9 +79,9 @@ services:
     ports:
       - "8004:8004"
     environment:
-      DB_HOST: subscription_service_db
+      DB_HOST: subscription_db
       DB_PORT: 5432
-      DB_NAME: subscription_db
+      DB_NAME: subscribe_db
       DB_USER: postgres
       DB_PASSWORD: postgres
       PYTHONPATH: /app
@@ -97,7 +97,7 @@ services:
     image: postgres:15.3
     container_name: subscription_service_db
     environment:
-      POSTGRES_DB: subscription_db
+      POSTGRES_DB: subscribe_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
