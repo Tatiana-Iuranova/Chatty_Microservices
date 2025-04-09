@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Устанавливаем PYTHONPATH
-PYTHONPATH=/app exec uvicorn app.main:app --host 0.0.0.0 --port 8004 --reload
+PYTHONPATH=/app exec uvicorn main:app --host 0.0.0.0 --port 8004 --reload
 # Выход при ошибке
 set -e
 # Ожидаем запуск базы данных
@@ -17,4 +17,4 @@ alembic upgrade head
 
 # Запускаем приложение
 echo "Запуск FastAPI приложения..."
-exec uvicorn subscription_service.main:app --host 0.0.0.0 --port 8004 --reload
+exec uvicorn main:app --host 0.0.0.0 --port 8004 --reload

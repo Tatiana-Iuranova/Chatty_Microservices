@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Path
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
-from subscription_service.schemas import SubscriptionResponse
-from subscription_service.models import Subscription
-from subscription_service.database import get_db
+from schemas import SubscriptionResponse
+from models import Subscription
+from database import get_db
 import httpx
 
 router = APIRouter()
