@@ -1,14 +1,14 @@
 from fastapi import FastAPI
-from routers.posts import router as posts
-from routers.comment import router as comments
-from routers.like import router as likes
+from routers.posts import post_router
+from routers.comment import comment_router
+from routers.like import like_router
 # Инициализация FastAPI
 app = FastAPI()
 
 # Подключение маршрутов
-app.include_router(posts, prefix="/posts", tags=["Posts"])
-app.include_router(comments, prefix="/comments", tags=["Comments"])
-app.include_router(likes, prefix="/likes", tags=["Likes"])
+app.include_router(post_router, prefix="/posts", tags=["Posts"])
+app.include_router(comment_router, prefix="/comments", tags=["Comments"])
+app.include_router(like_router, prefix="/likes", tags=["Likes"])
 
 # Главная страница
 @app.get("/")
