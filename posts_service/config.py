@@ -1,6 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-class SubscriptSettings(BaseSettings):
+class PostSettings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file='.env.local', extra='ignore', case_sensitive=False
     )
@@ -15,7 +15,7 @@ class SubscriptSettings(BaseSettings):
     def async_database_url(self) -> str:
         return f'postgresql+asyncpg://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}'
 
-settings = SubscriptSettings()
+settings = PostSettings()
 
 if __name__ == '__main__':
     print(settings.model_dump())
