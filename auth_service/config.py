@@ -4,7 +4,8 @@ class AuthSettings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file='.env.local', extra='ignore', case_sensitive=False
     )
-
+    APP_NAME: str = 'auth_service'
+    DEBUG: bool = False
     db_host: str = 'auth_db'
     db_port: int = 5432
     db_name: str = 'AuthDB'

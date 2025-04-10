@@ -54,6 +54,7 @@ services:
       DB_NAME: AuthDB
       DB_USER: postgres
       DB_PASSWORD: postgres
+      PYTHONPATH: /app
     volumes:
       - ./auth_service:/app
     depends_on:

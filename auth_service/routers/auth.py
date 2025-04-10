@@ -5,9 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import timedelta
 
 
-from auth_service.database import get_db
-from auth_service import models
-from auth_service.utils.security import authenticate_user, create_access_token, get_current_user
+from database import get_db
+import models
+from utils.security import authenticate_user, create_access_token, get_current_user
 
 router = APIRouter()
 
