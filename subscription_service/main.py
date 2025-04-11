@@ -2,7 +2,10 @@ from fastapi import FastAPI
 from routers.subscription_router import router as subscription_router
 from schemas import SubscriptionResponse
 from faststream.rabbit.fastapi import RabbitRouter
-from faststream import Event
+
+from asyncio import Event
+
+
 
 # Создание экземпляра RabbitRouter для подключения к RabbitMQ
 rabbit_router = RabbitRouter("amqp://guest:guest@rabbitmq:5672/")
@@ -17,7 +20,7 @@ app = FastAPI(
 app.include_router(subscription_router, prefix="/subscriptions", tags=["subscriptions"])
 
 # Пример публикации события подписки в RabbitMQ
-@rabbit_router.subscribe("user_subscribed")
+@rabbit_router.subscriber("user_subscribed")
 async def handle_user_subscribed(event: Event):
     data = event.payload
     user_id = data.get("user_id")

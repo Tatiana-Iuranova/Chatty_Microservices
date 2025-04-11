@@ -9,3 +9,5 @@
 5.   Apply migration "alembic upgrade head" 
 6.  Start the server "uvicorn main:app --reload"
 7. Configure Docker-Compose to run subscription_service "docker-compose up -d subscription_service"
+8. when error try commands <#!/bin/bash> or <#!/usr/bin/env bash> in docker-entrypoint.sh
+
