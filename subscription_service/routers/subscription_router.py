@@ -6,6 +6,10 @@ from schemas import SubscriptionResponse
 from models import Subscription
 from database import get_db
 import httpx
+from faststream import RabbitRouter, Event
+
+# Подключаем RabbitMQ через FastStream
+rabbit_router = RabbitRouter("amqp://guest:guest@rabbitmq:5672/")
 
 router = APIRouter()
 
@@ -38,7 +42,12 @@ async def unfollow(db: AsyncSession, user_id: int, follower_id: int) -> dict:
 
     await db.delete(subscription)
     await db.commit()
+    await rabbit_router.publish(
+        "user_unsubscribed",
+        Event(payload={"user_id": user_id, "follower_id": follower_id})
+    )
     return {"message": "Подписка удалена"}
+
 
 
 # ----------- Эндпоинты -----------
