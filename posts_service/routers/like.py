@@ -1,21 +1,23 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from posts_service import models, schemas, database
+from schemas import LikeBase,  LikeCreate, LikeInDB
+from models import Like
+from database import get_db
 
-router = APIRouter()
+like_router = APIRouter()
 
 
 # Создание лайка
-async def create_like(db: AsyncSession, like: schemas.LikeCreate) -> models.Like:
+async def create_like(db: AsyncSession, like: LikeCreate) -> Like:
     # Проверка, был ли уже лайк от этого пользователя на этот пост
     result = await db.execute(
-        select(models.Like).filter(models.Like.post_id == like.post_id, models.Like.user_id == like.user_id))
+        select(Like).filter(Like.post_id == like.post_id, Like.user_id == like.user_id))
     existing_like = result.scalars().first()
     if existing_like:
         raise HTTPException(status_code=400, detail="User has already liked this post")
 
-    db_like = models.Like(**like.dict())
+    db_like = Like(**like.dict())
     db.add(db_like)
     await db.commit()
     await db.refresh(db_like)
@@ -23,9 +25,9 @@ async def create_like(db: AsyncSession, like: schemas.LikeCreate) -> models.Like
 
 
 # Удаление лайка
-async def delete_like(db: AsyncSession, post_id: int, user_id: int) -> models.Like | None:
+async def delete_like(db: AsyncSession, post_id: int, user_id: int) -> Like | None:
     result = await db.execute(
-        select(models.Like).filter(models.Like.post_id == post_id, models.Like.user_id == user_id))
+        select(Like).filter(Like.post_id == post_id, Like.user_id == user_id))
     db_like = result.scalars().first()
     if db_like is None:
         return None
@@ -37,20 +39,30 @@ async def delete_like(db: AsyncSession, post_id: int, user_id: int) -> models.Li
 # Эндпоинты FastAPI для лайков
 
 # Создание лайка
-@router.post("/", response_model=schemas.LikeInDB)
+@like_router.post(
+    "/",
+    response_model=LikeInDB,
+    summary="Создание лайка",
+    description="Позволяет пользователю создать лайк"
+)
 async def create_like_endpoint(
-        like: schemas.LikeCreate,
-        db: AsyncSession = Depends(database.get_async_session)
+        like: LikeCreate,
+        db: AsyncSession = Depends(get_db)
 ):
     return await create_like(db, like)
 
 
 # Удаление лайка
-@router.delete("/", response_model=schemas.LikeInDB)
+@like_router.delete(
+    "/",
+    response_model=LikeInDB,
+    summary="Удаление лайка",
+    description="Позволяет пользователю удалить лайк"
+)
 async def delete_like_endpoint(
         post_id: int,
         user_id: int,
-        db: AsyncSession = Depends(database.get_async_session)
+        db: AsyncSession = Depends(get_db)
 ):
     db_like = await delete_like(db, post_id, user_id)
     if db_like is None:
