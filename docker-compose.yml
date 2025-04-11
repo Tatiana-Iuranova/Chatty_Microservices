@@ -9,6 +9,31 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
+
+  integration_tests:
+    build:
+      context: ./tests/integration
+      dockerfile: Dockerfile
+    container_name: integration_tests
+    depends_on:
+      - auth_service
+      - posts_service
+      - subscription_service
+      - rabbitmq
+      - auth_db
+      - posts_db
+      - subscription_db
+    environment:
+      AUTH_URL: http://auth_service:8003
+      POSTS_URL: http://posts_service:8000
+      SUBSCRIPTION_URL: http://subscription_service:8004
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+    command: >
+      sh -c "sleep 10 &&
+             pytest --tb=short --maxfail=1"
+    volumes:
+      - ./tests/integration:/tests
+
   posts_service:
     build:
       context: ./posts_service
