@@ -56,3 +56,5 @@ async def test_auth_post_subscription():
         # Попытка подписки без токена
         response = await client.post(f"/subscribe/{user1_id}")
         assert response.status_code == 401
+
+
