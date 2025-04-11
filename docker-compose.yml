@@ -12,7 +12,7 @@ services:
 
   integration_tests:
     build:
-      context: ./tests/integration
+      context: ./tests
       dockerfile: Dockerfile
     container_name: integration_tests
     depends_on:
@@ -117,7 +117,7 @@ services:
       - ./subscription_service:/app
     depends_on:
       - rabbitmq
-      - subscribe_db
+      - subscription_db
 
   subscription_db:
     image: postgres:15.3
