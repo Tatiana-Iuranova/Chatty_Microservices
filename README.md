@@ -5,5 +5,7 @@
 1. Create virtual environment "python -m venv .venv"
 2. load virtual environment ".venv\Scripts\activate"
 3. load necessary libraries "pip install -r requirements.txt"
-4. Apply migration "alembic upgrade head" 
-5. Start the server "docker-compose up -d --build "
+4. Apply 'alembic revision --autogenerate -m "12e256d50854добавилтаблицу_users_and_post.py"'
+5.   Apply migration "alembic upgrade head" 
+6.  Start the server "uvicorn main:app --reload"
+7. Configure Docker-Compose to run subscription_service "docker-compose up -d subscription_service --build"
