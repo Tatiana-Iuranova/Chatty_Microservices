@@ -2,8 +2,15 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from posts_service import models, schemas, database
+from faststream import RabbitRouter
+
+# Подключаем RabbitMQ
+rabbit_router = RabbitRouter("amqp://guest:guest@rabbitmq:5672/")
 
 router = APIRouter()
+
+
+
 
 # Создание поста
 @router.post("/", response_model=schemas.PostInDB)
@@ -15,6 +22,12 @@ async def create_post(
     db.add(db_post)
     await db.commit()  # Коммит асинхронно
     await db.refresh(db_post)  # Асинхронное обновление
+    # Публикуем событие в RabbitMQ после создания поста
+    await rabbit_router.publish(
+        "post.created",  # Название события
+        {"post_id": db_post.id, "title": db_post.title, "content": db_post.content}  # Данные события
+    )
+
     return db_post
 
 # Обновление поста

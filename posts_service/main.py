@@ -2,8 +2,20 @@ from fastapi import FastAPI
 from routers.posts import router as posts
 from routers.comment import router as comments
 from routers.like import router as likes
+from faststream.rabbit.fastapi import RabbitRouter, Logger
 # Инициализация FastAPI
-app = FastAPI()
+
+router = RabbitRouter("amqp://guest:guest@rabbitmq:5672/")
+app = FastAPI(
+    title="PostService API",
+    version="1.0.0",
+    openapi_url="/openapi.json",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    root_path="/api",  # внешний префикс
+    root_path_in_servers=True  # включаем генерацию серверов с префиксом
+)
+
 
 # Подключение маршрутов
 app.include_router(posts, prefix="/posts", tags=["Posts"])
