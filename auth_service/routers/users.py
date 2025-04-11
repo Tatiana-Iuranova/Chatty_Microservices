@@ -5,7 +5,7 @@ import models
 import schemas
 from database import get_db
 from utils.security import get_password_hash
-from faststream import RabbitRouter
+from faststream.rabbit.fastapi import RabbitRouter
 
 rabbit_router = RabbitRouter("amqp://guest:guest@rabbitmq:5672/")
 

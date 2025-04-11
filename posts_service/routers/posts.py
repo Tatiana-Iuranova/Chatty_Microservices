@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from faststream import RabbitRouter
+from faststream.rabbit.fastapi import RabbitRouter
 from schemas import PostBase, PostCreate, PostUpdate, PostInDB
 from models import Post
 from database import get_db

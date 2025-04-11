@@ -6,7 +6,8 @@ from schemas import SubscriptionResponse
 from models import Subscription
 from database import get_db
 import httpx
-from faststream import RabbitRouter, Event
+from faststream.rabbit.fastapi import RabbitRouter
+from faststream import Event
 
 # Подключаем RabbitMQ через FastStream
 rabbit_router = RabbitRouter("amqp://guest:guest@rabbitmq:5672/")

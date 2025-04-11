@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 
 
-from faststream import RabbitRouter, Logger
+from faststream.rabbit.fastapi import RabbitRouter, Logger
 
 from routers.posts import post_router
 from routers.comment import comment_router
