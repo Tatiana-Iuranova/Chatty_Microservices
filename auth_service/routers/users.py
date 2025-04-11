@@ -5,6 +5,9 @@ import models
 import schemas
 from database import get_db
 from utils.security import get_password_hash
+from faststream.rabbit.fastapi import RabbitRouter
+
+rabbit_router = RabbitRouter("amqp://guest:guest@rabbitmq:5672/")
 
 
 router = APIRouter()
@@ -36,8 +39,16 @@ async def create_user(user_in: schemas.UserCreate, db: AsyncSession = Depends(ge
     db.add(user)
     await db.commit()
     await db.refresh(user)
+    await rabbit_router.publish(
+        "user.registered",  # название очереди или топика
+        {"username": user_in.username, "email": user_in.email}  # данные, которые отправляем
+    )
 
     return schemas.UserResponse(id=user.id, username=user.username, email=user.email)
+
+
+
+
 
 @router.patch("/users/{user_id}/activate", response_model=schemas.UserResponse, description="Активация пользователя")
 async def activate_user(user_id: int, db: AsyncSession = Depends(get_db)):
