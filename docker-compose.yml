@@ -41,12 +41,9 @@ services:
     container_name: posts_service
     ports:
       - "8000:8000"
+    env_file:
+      - .env
     environment:
-      DB_HOST: Posts_service_db
-      DB_PORT: 5432
-      DB_NAME: posts_db
-      DB_USER: postgres
-      DB_PASSWORD: postgres
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
     volumes:
       - ./posts_service:/app
@@ -56,15 +53,18 @@ services:
 
   posts_db:
     image: postgres:15.3
-    container_name: Posts_service_db
+    container_name: posts_db
+    env_file:
+      - .env
     environment:
-      POSTGRES_DB: posts_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${POSTS_DB_NAME}
+      POSTGRES_USER: ${POSTS_DB_USER}
+      POSTGRES_PASSWORD: ${POSTS_DB_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
       - posts_db_data:/var/lib/postgresql/data
+
 
   auth_service:
     build:
@@ -73,12 +73,9 @@ services:
     container_name: auth_service
     ports:
       - "8003:8003"
+    env_file:
+      - .env
     environment:
-      DB_HOST: auth_db
-      DB_PORT: 5432
-      DB_NAME: AuthDB
-      DB_USER: postgres
-      DB_PASSWORD: postgres
       PYTHONPATH: /app
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
     volumes:
@@ -90,10 +87,12 @@ services:
   auth_db:
     image: postgres:15.3
     container_name: auth_db
+    env_file:
+      - .env
     environment:
-      POSTGRES_DB: AuthDB
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${AUTH_DB_NAME}
+      POSTGRES_USER: ${AUTH_DB_USER}
+      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
     ports:
       - "5433:5432"
     volumes:
@@ -106,12 +105,9 @@ services:
     container_name: subscription_service
     ports:
       - "8004:8004"
+    env_file:
+      - .env
     environment:
-      DB_HOST: subscription_service_db
-      DB_PORT: 5432
-      DB_NAME: subscribe_db
-      DB_USER: postgres
-      DB_PASSWORD: postgres
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
     volumes:
       - ./subscription_service:/app
@@ -121,11 +117,13 @@ services:
 
   subscription_db:
     image: postgres:15.3
-    container_name: subscription_service_db
+    container_name: subscription_db
+    env_file:
+      - .env
     environment:
-      POSTGRES_DB: subscribe_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${SUBSCRIBE_DB_NAME}
+      POSTGRES_USER: ${SUBSCRIBE_DB_USER}
+      POSTGRES_PASSWORD: ${SUBSCRIBE_DB_PASSWORD}
     ports:
       - "5434:5432"
     volumes:
