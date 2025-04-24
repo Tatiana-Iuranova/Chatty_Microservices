@@ -28,6 +28,7 @@ services:
       POSTS_URL: http://posts_service:8000
       SUBSCRIPTION_URL: http://subscription_service:8004
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+      PYTHONPATH: /app
     command: >
       sh -c "sleep 10 &&
              pytest --tb=short --maxfail=1"

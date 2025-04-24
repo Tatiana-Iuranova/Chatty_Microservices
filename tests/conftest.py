@@ -1,6 +1,11 @@
 import pytest
 import pytest_asyncio
 import os
+import sys
+
+# Добавляем корень проекта в sys.path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
@@ -10,6 +15,7 @@ from auth_service.main import app
 from httpx import ASGITransport, AsyncClient
 
 # TEST_DATABASE_URL = "postgresql+asyncpg://test-user:password@localhost:5434/test_db"
+
 
 
 @pytest.fixture(scope="session")
