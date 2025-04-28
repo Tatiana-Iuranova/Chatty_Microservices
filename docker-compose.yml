@@ -63,6 +63,7 @@ services:
       POSTGRES_DB: ${ADMIN_DB_NAME}
     ports:
       - "5435:5432"   # 🛠 Перенес порт, чтобы не конфликтовать с posts_db
+
     volumes:
       - postgres_admin_data:/var/lib/postgresql/data
 
