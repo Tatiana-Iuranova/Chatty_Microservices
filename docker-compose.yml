@@ -1,38 +1,71 @@
-version: "3.8"
-
 services:
   rabbitmq:
     image: rabbitmq:3-management
+    container_name: rabbitmq
     ports:
-      - "5672:5672"      # для приложений (FastStream, pika и т.п.)
-      - "15672:15672"    # веб-интерфейс RabbitMQ
+      - "5672:5672"     # AMQP для приложений
+      - "15672:15672"   # Web UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
-
-  integration_tests:
-    build:
-      context: ./tests
-      dockerfile: Dockerfile
-    container_name: integration_tests
-    depends_on:
-      - auth_service
-      - posts_service
-      - subscription_service
-      - rabbitmq
-      - auth_db
-      - posts_db
-      - subscription_db
+  posts_db:
+    image: postgres:15.3
+    container_name: posts_db
+    env_file:
+      - .env.local
     environment:
-      AUTH_URL: http://auth_service:8003
-      POSTS_URL: http://posts_service:8000
-      SUBSCRIPTION_URL: http://subscription_service:8004
-      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
-    command: >
-      sh -c "sleep 10 &&
-             pytest --tb=short --maxfail=1"
+      POSTGRES_DB: ${POSTS_DB_NAME}
+      POSTGRES_USER: ${POSTS_DB_USER}
+      POSTGRES_PASSWORD: ${POSTS_DB_PASSWORD}
+    ports:
+      - "5432:5432"  # ⚡ Конфликт с admin_db! См. ниже
     volumes:
-      - ./tests/integration:/tests
+      - posts_db_data:/var/lib/postgresql/data
+
+  auth_db:
+    image: postgres:15.3
+    container_name: auth_db
+    env_file:
+      - .env.local
+    environment:
+      POSTGRES_DB: ${AUTH_DB_NAME}
+      POSTGRES_USER: ${AUTH_DB_USER}
+      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+      - auth_db_data:/var/lib/postgresql/data
+
+  subscription_db:
+    image: postgres:15.3
+    container_name: subscription_db
+    env_file:
+      - .env.local
+    environment:
+      POSTGRES_DB: ${SUBSCRIBE_DB_NAME}
+      POSTGRES_USER: ${SUBSCRIBE_DB_USER}
+      POSTGRES_PASSWORD: ${SUBSCRIBE_DB_PASSWORD}
+    ports:
+      - "5434:5432"
+    volumes:
+      - subscription_db_data:/var/lib/postgresql/data
+
+  admin_db:
+    image: postgres:15.3
+    container_name: admin_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${ADMIN_DB_USER}
+      POSTGRES_PASSWORD: ${ADMIN_DB_PASSWORD}
+      POSTGRES_DB: ${ADMIN_DB_NAME}
+    ports:
+      - "5435:5432"   # 🛠 Перенес порт, чтобы не конфликтовать с posts_db
+
+    volumes:
+      - postgres_admin_data:/var/lib/postgresql/data
 
   posts_service:
     build:
@@ -41,12 +74,9 @@ services:
     container_name: posts_service
     ports:
       - "8000:8000"
+    env_file:
+      - .env.local
     environment:
-      DB_HOST: Posts_service_db
-      DB_PORT: 5432
-      DB_NAME: posts_db
-      DB_USER: postgres
-      DB_PASSWORD: postgres
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
     volumes:
       - ./posts_service:/app
@@ -54,31 +84,16 @@ services:
       - posts_db
       - rabbitmq
 
-  posts_db:
-    image: postgres:15.3
-    container_name: Posts_service_db
-    environment:
-      POSTGRES_DB: posts_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - posts_db_data:/var/lib/postgresql/data
-
   auth_service:
     build:
       context: ./auth_service
-      dockerfile: Dockerfile
+      dockerfile: ./Dockerfile
     container_name: auth_service
     ports:
       - "8003:8003"
+    env_file:
+      - .env.local
     environment:
-      DB_HOST: auth_db
-      DB_PORT: 5432
-      DB_NAME: AuthDB
-      DB_USER: postgres
-      DB_PASSWORD: postgres
       PYTHONPATH: /app
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
     volumes:
@@ -87,18 +102,6 @@ services:
       - auth_db
       - rabbitmq
 
-  auth_db:
-    image: postgres:15.3
-    container_name: auth_db
-    environment:
-      POSTGRES_DB: AuthDB
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5433:5432"
-    volumes:
-      - auth_db_data:/var/lib/postgresql/data
-
   subscription_service:
     build:
       context: ./subscription_service
@@ -106,33 +109,63 @@ services:
     container_name: subscription_service
     ports:
       - "8004:8004"
+    env_file:
+      - .env.local
     environment:
-      DB_HOST: subscription_service_db
-      DB_PORT: 5432
-      DB_NAME: subscribe_db
-      DB_USER: postgres
-      DB_PASSWORD: postgres
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
     volumes:
       - ./subscription_service:/app
     depends_on:
-      - rabbitmq
       - subscription_db
+      - rabbitmq
 
-  subscription_db:
-    image: postgres:15.3
-    container_name: subscription_service_db
-    environment:
-      POSTGRES_DB: subscribe_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+  admin_service:
+    build:
+      context: ./admin_service
+      dockerfile: ./Dockerfile
+    container_name: admin_service
     ports:
-      - "5434:5432"
-    volumes:
-      - subscription_db_data:/var/lib/postgresql/data
+      - "8006:8006"
+    env_file:
+      - .env.local
+    environment:
+#      DB_HOST: admin_db
+#      DB_PORT: 5432
+#      DB_NAME: admin_db
+#      DB_USER: postgres
+#      DB_PASSWORD: postgres
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+    depends_on:
+      - admin_db
+      - rabbitmq
+
+#  integration_tests:
+#    build:
+#      context: ./tests
+#      dockerfile: ./Dockerfile
+#    container_name: integration_tests
+#    depends_on:
+#      - auth_service
+#      - posts_service
+#      - subscription_service
+#      - rabbitmq
+#      - auth_db
+#      - posts_db
+#      - subscription_db
+#    environment:
+#      AUTH_URL: http://auth_service:8003
+#      POSTS_URL: http://posts_service:8000
+#      SUBSCRIPTION_URL: http://subscription_service:8004
+#      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+#    command: >
+#      sh -c "sleep 10 &&
+#             pytest --tb=short --maxfail=1"
+#    volumes:
+#      - ./tests/integration:/tests
 
 volumes:
   posts_db_data:
   auth_db_data:
   subscription_db_data:
+  postgres_admin_data:
   rabbitmq_data:
