@@ -6,15 +6,16 @@ WORKDIR /app
 COPY . /app
 
 # Устанавливаем PYTHONPATH
-ENV PYTHONPATH=/app
+ENV PYTHONPATH="/app"
+RUN apt-get update && apt-get install -y bash
 
 RUN apt-get update && apt-get install -y netcat-openbsd && apt-get clean
 
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
 
-RUN chmod +x docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.sh
 
-EXPOSE 8004
+EXPOSE 8006
 
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
