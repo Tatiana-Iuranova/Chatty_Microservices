@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 # Устанавливаем значения по умолчанию, если переменные не заданы
 DB_HOST="${DB_HOST:-admin_db}"
