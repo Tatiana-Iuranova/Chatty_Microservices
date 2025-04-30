@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from config import settings
+from admin_service.config import settings
 
 # DATABASE_URL = "postgresql+psycopg2://postgres:postgres@localhost:5432/books_db"
 # engine = create_engine(DATABASE_URL)
