@@ -3,8 +3,8 @@ services:
     image: rabbitmq:3-management
     container_name: rabbitmq
     ports:
-      - "5672:5672"     # AMQP для приложений
-      - "15672:15672"   # Web UI
+      - "5672:5672"
+      - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
@@ -14,65 +14,60 @@ services:
   posts_db:
     image: postgres:15.3
     container_name: posts_db
-    environment:
-      POSTGRES_DB: ${POSTS_DB_NAME}
-      POSTGRES_USER: ${POSTS_DB_USER}
-      POSTGRES_PASSWORD: ${POSTS_DB_PASSWORD}
     ports:
       - "5432:5432"
+    environment:
+      POSTGRES_DB: posts_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     volumes:
       - posts_db_data:/var/lib/postgresql/data
 
   auth_db:
     image: postgres:15.3
     container_name: auth_db
-    environment:
-      POSTGRES_DB: ${AUTH_DB_NAME}
-      POSTGRES_USER: ${AUTH_DB_USER}
-      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
     ports:
       - "5433:5432"
+    environment:
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     volumes:
       - auth_db_data:/var/lib/postgresql/data
 
   subscription_db:
     image: postgres:15.3
     container_name: subscription_db
-    environment:
-      POSTGRES_DB: ${SUBSCRIBE_DB_NAME}
-      POSTGRES_USER: ${SUBSCRIBE_DB_USER}
-      POSTGRES_PASSWORD: ${SUBSCRIBE_DB_PASSWORD}
     ports:
       - "5434:5432"
+    environment:
+      POSTGRES_DB: subscribe_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     volumes:
       - subscription_db_data:/var/lib/postgresql/data
 
   admin_db:
     image: postgres:15.3
     container_name: admin_db
-    environment:
-      POSTGRES_USER: ${ADMIN_DB_USER}
-      POSTGRES_PASSWORD: ${ADMIN_DB_PASSWORD}
-      POSTGRES_DB: ${ADMIN_DB_NAME}
     ports:
       - "5435:5432"
+    environment:
+      POSTGRES_DB: admin_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     volumes:
-      - postgres_admin_data:/var/lib/postgresql/data
+      - admin_db_data:/var/lib/postgresql/data
 
   posts_service:
     build:
       context: ./posts_service
-      dockerfile: ./Dockerfile
+      dockerfile: Dockerfile
     container_name: posts_service
     ports:
       - "8000:8000"
-    environment:
-      DB_HOST: ${POSTS_DB_HOST}
-      DB_PORT: ${POSTS_DB_PORT}
-      DB_NAME: ${POSTS_DB_NAME}
-      DB_USER: ${POSTS_DB_USER}
-      DB_PASSWORD: ${POSTS_DB_PASSWORD}
-      RABBITMQ_URL: ${POSTS_RABBITMQ_URL}
+    env_file:
+      - ./posts_service/.env.local
     volumes:
       - ./posts_service:/app
     depends_on:
@@ -82,17 +77,12 @@ services:
   auth_service:
     build:
       context: ./auth_service
-      dockerfile: ./Dockerfile
+      dockerfile: Dockerfile
     container_name: auth_service
     ports:
       - "8003:8003"
-    environment:
-      DB_HOST: ${AUTH_DB_HOST}
-      DB_PORT: ${AUTH_DB_PORT}
-      DB_NAME: ${AUTH_DB_NAME}
-      DB_USER: ${AUTH_DB_USER}
-      DB_PASSWORD: ${AUTH_DB_PASSWORD}
-      RABBITMQ_URL: ${AUTH_RABBITMQ_URL}
+    env_file:
+      - ./auth_service/.env.local
     volumes:
       - ./auth_service:/app
     depends_on:
@@ -102,17 +92,12 @@ services:
   subscription_service:
     build:
       context: ./subscription_service
-      dockerfile: ./Dockerfile
+      dockerfile: Dockerfile
     container_name: subscription_service
     ports:
       - "8004:8004"
-    environment:
-      DB_HOST: ${SUBSCRIBE_DB_HOST}
-      DB_PORT: ${SUBSCRIBE_DB_PORT}
-      DB_NAME: ${SUBSCRIBE_DB_NAME}
-      DB_USER: ${SUBSCRIBE_DB_USER}
-      DB_PASSWORD: ${SUBSCRIBE_DB_PASSWORD}
-      RABBITMQ_URL: ${SUBSCRIBE_RABBITMQ_URL}
+    env_file:
+       - ./subscription_service/.env.local
     volumes:
       - ./subscription_service:/app
     depends_on:
@@ -122,24 +107,21 @@ services:
   admin_service:
     build:
       context: ./admin_service
-      dockerfile: ./Dockerfile
+      dockerfile: Dockerfile
     container_name: admin_service
     ports:
       - "8006:8006"
-    environment:
-      DB_HOST: ${ADMIN_DB_HOST}
-      DB_PORT: ${ADMIN_DB_PORT}
-      DB_NAME: ${ADMIN_DB_NAME}
-      DB_USER: ${ADMIN_DB_USER}
-      DB_PASSWORD: ${ADMIN_DB_PASSWORD}
-      RABBITMQ_URL: ${ADMIN_RABBITMQ_URL}
+    env_file:
+      - ./admin_service/.env.local
+    volumes:
+      - ./admin_service:/app
     depends_on:
       - admin_db
       - rabbitmq
 
 volumes:
+  rabbitmq_data:
   posts_db_data:
   auth_db_data:
   subscription_db_data:
-  postgres_admin_data:
-  rabbitmq_data:
+  admin_db_data:
