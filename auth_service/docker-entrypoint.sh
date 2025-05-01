@@ -16,8 +16,6 @@ wait_for_db() {
   echo "Database is ready!"
 }
 
-wait_for_db
-
 echo "Applying Alembic migrations..."
 alembic upgrade head
 
