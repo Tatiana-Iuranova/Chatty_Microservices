@@ -35,9 +35,9 @@ services:
     volumes:
       - auth_db_data:/var/lib/postgresql/data
 
-  subscription_db:
+  subscribe_db:
     image: postgres:15.3
-    container_name: subscription_db
+    container_name: subscribe_db
     ports:
       - "5434:5432"
     environment:
@@ -45,7 +45,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     volumes:
-      - subscription_db_data:/var/lib/postgresql/data
+      - subscribe_db_data:/var/lib/postgresql/data
 
   admin_db:
     image: postgres:15.3
@@ -101,7 +101,7 @@ services:
     volumes:
       - ./subscription_service:/app
     depends_on:
-      - subscription_db
+      - subscribe_db
       - rabbitmq
 
   admin_service:
@@ -123,5 +123,5 @@ volumes:
   rabbitmq_data:
   posts_db_data:
   auth_db_data:
-  subscription_db_data:
+  subscribe_db_data:
   admin_db_data:
