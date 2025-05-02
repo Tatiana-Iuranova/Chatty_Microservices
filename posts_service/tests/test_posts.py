@@ -3,7 +3,7 @@
 import pytest
 from httpx import AsyncClient
 
-BASE_URL = "http://posts_service:8000"
+BASE_URL = "http://localhost:8000"
 
 @pytest.mark.asyncio
 async def test_post(user1_token, user1_id):

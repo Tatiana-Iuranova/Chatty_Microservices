@@ -2,7 +2,7 @@ import pytest
 import asyncio
 from httpx import AsyncClient
 
-BASE_URL = "http://auth_service:8003"
+BASE_URL = "http://localhost:8003"
 
 
 
