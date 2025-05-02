@@ -14,7 +14,7 @@ wait_for_db(){
   done
   echo "База данных доступна!"
 }
-
+wait_for_db
 # Применяем миграции
 echo "Применяем миграции Alembic..."
 alembic upgrade head

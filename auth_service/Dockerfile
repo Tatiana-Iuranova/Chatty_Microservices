@@ -5,17 +5,14 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 COPY . /app
 ENV PYTHONPATH="/app"
-RUN apt-get update && apt-get install -y bash
-
 
 RUN apt-get update && apt-get install -y netcat-openbsd && apt-get clean
 
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
 
-RUN chmod +x /app/docker-entrypoint.sh
+RUN chmod +x docker-entrypoint.sh
 
 EXPOSE 8003
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
 
-#ENTRYPOINT ["./docker-entrypoint.sh"]
