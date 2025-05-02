@@ -1,5 +1,7 @@
 import pytest
 
+from admin_service.tests.test_users import ADMIN_TOKEN
+
 
 @pytest.mark.asyncio
 async def test_delete_post_success(client):

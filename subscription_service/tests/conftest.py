@@ -2,8 +2,8 @@
 import pytest
 from httpx import AsyncClient
 
-AUTH_SERVICE_URL = "http://auth_service:8003"
-POSTS_SERVICE_URL = "http://posts_service:8000"
+AUTH_SERVICE_URL = "http://localhost:8003"
+POSTS_SERVICE_URL = "http://localhost:8000"
 
 @pytest.fixture(scope="session")
 async def auth_client():
