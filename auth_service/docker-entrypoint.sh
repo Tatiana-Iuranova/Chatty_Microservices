@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/bash
 set -e
 # Устанавливаем значения по умолчанию, если переменные не заданы
 DB_HOST="${DB_HOST:-auth_db}"
