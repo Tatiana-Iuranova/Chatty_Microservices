@@ -5,10 +5,7 @@ import models
 import schemas
 from database import get_db
 from utils.security import get_password_hash
-from faststream.rabbit.fastapi import RabbitRouter
-
-rabbit_router = RabbitRouter("amqp://guest:guest@rabbitmq:5672/")
-
+from utils.messaging import rabbit_broker  # Импортируем rabbit_broker, не rabbit_router
 
 router = APIRouter()
 
@@ -21,6 +18,7 @@ async def create_user(user_in: schemas.UserCreate, db: AsyncSession = Depends(ge
 
     if existing_user:
         raise HTTPException(status_code=400, detail="Такой пользователь уже существует")
+
     existing_email = await db.execute(
         select(models.User).where(models.User.email == user_in.email)
     )
@@ -39,33 +37,15 @@ async def create_user(user_in: schemas.UserCreate, db: AsyncSession = Depends(ge
     db.add(user)
     await db.commit()
     await db.refresh(user)
-    await rabbit_router.publish(
-        "user.registered",  # название очереди или топика
-        {"username": user_in.username, "email": user_in.email}  # данные, которые отправляем
-    )
+
+    # Публикуем сообщение в RabbitMQ
+    try:
+        await rabbit_broker.publish(
+            {"username": user_in.username, "email": user_in.email},
+            routing_key="user.registered"  # FastStream требует routing_key
+        )
+        print(f"Message sent to RabbitMQ for user {user_in.username}")
+    except Exception as e:
+        print(f"Error while sending message to RabbitMQ: {e}")
 
     return schemas.UserResponse(id=user.id, username=user.username, email=user.email)
-
-
-
-
-
-@router.patch("/users/{user_id}/activate", response_model=schemas.UserResponse, description="Активация пользователя")
-async def activate_user(user_id: int, db: AsyncSession = Depends(get_db)):
-    # Получаем пользователя по ID
-    user = await db.execute(select(models.User).filter(models.User.id == user_id))
-    user = user.scalar_one_or_none()
-
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    if user.is_active:
-        raise HTTPException(status_code=400, detail="Пользователь уже активирован")
-
-    # Активируем пользователя
-    user.is_active = True
-    db.add(user)
-    await db.commit()
-    await db.refresh(user)
-
-    return schemas.UserResponse(id=user.id, username=user.username, email=user.email, is_active=user.is_active)
