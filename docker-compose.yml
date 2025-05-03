@@ -1,4 +1,5 @@
 services:
+services:
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
@@ -8,8 +9,19 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
+
+  email_consumer:
+    build:
+      context: .
+    container_name: email_consumer
+    command: ["sh", "-c", "./wait-for-rabbitmq.sh && python email_consumer.py"]
+    env_file:
+      - .env.local
     volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
+      - .:/app
+    depends_on:
+      - rabbitmq
+
 
   posts_db:
     image: postgres:15.3

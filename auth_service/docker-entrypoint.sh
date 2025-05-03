@@ -1,24 +1,23 @@
 #!/usr/bin/bash
 set -e
-# Устанавливаем значения по умолчанию, если переменные не заданы
-DB_HOST="${DB_HOST:-auth_db}"
-DB_PORT="${DB_PORT:-5432}"
 
-echo "Using DB_HOST=$DB_HOST"
-echo "Using DB_PORT=$DB_PORT"
+# Устанавливаем значения по умолчанию
+RABBIT_HOST="${RABBIT_HOST:-rabbitmq}"
+RABBIT_PORT="${RABBIT_PORT:-5672}"
 
-wait_for_db() {
-  echo "Waiting for database at $DB_HOST:$DB_PORT..."
-  while ! nc -z "$DB_HOST" "$DB_PORT"; do
-    echo "Database is not ready yet..."
+echo "Using RABBIT_HOST=$RABBIT_HOST"
+echo "Using RABBIT_PORT=$RABBIT_PORT"
+
+wait_for_rabbit() {
+  echo "⏳ Ожидание RabbitMQ на $RABBIT_HOST:$RABBIT_PORT..."
+  while ! nc -z "$RABBIT_HOST" "$RABBIT_PORT"; do
+    echo "🐇 RabbitMQ пока не доступен..."
     sleep 1
   done
-  echo "Database is ready!"
+  echo "✅ RabbitMQ доступен!"
 }
-wait_for_db
 
-echo "Applying Alembic migrations..."
-alembic upgrade head
+wait_for_rabbit
 
-echo "Starting AuthService..."
-exec uvicorn main:app --host 0.0.0.0 --port 8003  --reload
+echo "🚀 Запуск email_consumer.py..."
+exec python email_consumer.py

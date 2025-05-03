@@ -1,25 +1,56 @@
-# Простейшая "база"
-USERS_DB = {
-    1: {"id": 1, "email": "user1@example.com", "role": "user", "is_blocked": False},
-    2: {"id": 2, "email": "admin@example.com", "role": "admin", "is_blocked": False},
-}
+import httpx
+
+AUTH_SERVICE_URL = "http://auth_service:8003"  # Используется в Docker-сети
+
+async def get_user_from_auth_service(user_id: int) -> dict | None:
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"{AUTH_SERVICE_URL}/users/{user_id}")
+            if response.status_code == 200:
+                return response.json()
+            return None
+    except httpx.RequestError as e:
+        print(f"Ошибка запроса к auth_service: {e}")
+        return None
 
 async def get_user(user_id: int):
-    return USERS_DB.get(user_id)
+    return await get_user_from_auth_service(user_id)
 
 async def get_all_users():
-    return list(USERS_DB.values())
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"{AUTH_SERVICE_URL}/users/")
+            if response.status_code == 200:
+                return response.json()
+            return []
+    except httpx.RequestError as e:
+        print(f"Ошибка при получении всех пользователей: {e}")
+        return []
 
 async def set_block_status(user_id: int, blocked: bool):
-    user = USERS_DB.get(user_id)
-    if user:
-        user["is_blocked"] = blocked
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.patch(
+                f"{AUTH_SERVICE_URL}/users/{user_id}/block",
+                json={"is_blocked": blocked}
+            )
+            return response.status_code == 200
+    except httpx.RequestError as e:
+        print(f"Ошибка при обновлении статуса блокировки: {e}")
+        return False
 
 async def change_role(user_id: int, role: str):
-    user = USERS_DB.get(user_id)
-    if user:
-        user["role"] = role
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.patch(
+                f"{AUTH_SERVICE_URL}/users/{user_id}/role",
+                json={"role": role}
+            )
+            return response.status_code == 200
+    except httpx.RequestError as e:
+        print(f"Ошибка при смене роли: {e}")
+        return False
 
 async def is_admin(user_id: int) -> bool:
     user = await get_user(user_id)
-    return user and user["role"] == "admin"
+    return bool(user and user.get("role") == "admin")
