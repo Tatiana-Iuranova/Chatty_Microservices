@@ -9,7 +9,7 @@ comment_router = APIRouter()
 
 # Создание комментария
 async def create_comment(db: AsyncSession, comment: CommentCreate) -> Comment:
-    db_comment = Comment(**comment.dict())
+    db_comment = Comment(**comment.model_dump())
     db.add(db_comment)
     await db.commit()
     await db.refresh(db_comment)
