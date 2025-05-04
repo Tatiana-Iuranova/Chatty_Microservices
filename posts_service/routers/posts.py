@@ -1,7 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException
+import logging
+from fastapi import APIRouter, Depends, HTTPException,status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from faststream.rabbit.fastapi import RabbitRouter
+from sqlalchemy.exc import SQLAlchemyError
 from schemas import PostBase, PostCreate, PostUpdate, PostInDB
 from models import Post
 from database import get_db
@@ -9,14 +11,12 @@ from database import get_db
 # Подключаем RabbitMQ
 rabbit_router = RabbitRouter("amqp://guest:guest@rabbitmq:5672/")
 
-
-
+# создаём функцию publisher
+publish_post_created = rabbit_router.publisher("post.created")
 
 post_router = APIRouter()
 
-
-
-
+logger = logging.getLogger(__name__)
 # Создание поста
 @post_router.post(
     "/",
@@ -25,20 +25,45 @@ post_router = APIRouter()
     description="Позволяет пользователю создать пост"
 )
 async def create_post(
-    post: PostCreate,
-    db: AsyncSession = Depends(get_db)
+        post: PostCreate,
+        db: AsyncSession = Depends(get_db)
 ):
-    db_post = Post(**post.dict())
-    db.add(db_post)
-    await db.commit()  # Коммит асинхронно
-    await db.refresh(db_post)  # Асинхронное обновление
-    # Публикуем событие в RabbitMQ после создания поста
-    await rabbit_router.publish(
-        "post.created",  # Название события
-        {"post_id": db_post.id, "title": db_post.title, "content": db_post.content}  # Данные события
-    )
+    try:
+        logger.info("Запрос на создание поста получен.")
 
-    return db_post
+        # Создаем новый пост
+        db_post = Post(**post.dict())
+        db.add(db_post)
+        # Коммит асинхронно
+        await db.commit()
+        # Асинхронное обновление объекта
+        await db.refresh(db_post)
+
+        logger.info(f"Пост с ID {db_post.id} успешно создан.")
+
+        # Публикуем событие в RabbitMQ
+        publish_post_created({"post_id": db_post.id, "title": db_post.title, "content": db_post.content})
+
+        logger.info(f"Событие для поста {db_post.id} опубликовано в RabbitMQ.")
+
+        return db_post
+
+    except SQLAlchemyError as e:
+        # Откатываем изменения в БД в случае ошибки
+        await db.rollback()
+        logger.error(f"Ошибка при сохранении поста в БД: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ошибка при создании поста"
+        )
+
+    except Exception as e:
+        # Логируем ошибку и возвращаем исключение для RabbitMQ
+        logger.error(f"Ошибка при публикации события RabbitMQ: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ошибка при публикации события"
+        )
 
 @post_router.get(
     "/",
