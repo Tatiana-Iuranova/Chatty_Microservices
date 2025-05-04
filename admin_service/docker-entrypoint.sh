@@ -1,13 +1,7 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
+# Выход при ошибке
 set -e
-# Устанавливаем значения по умолчанию, если переменные не заданы
-DB_HOST="${DB_HOST:-admin_db}"
-DB_PORT="${DB_PORT:-5432}"
-
-echo "Using DB_HOST=$DB_HOST"
-echo "Using DB_PORT=$DB_PORT"
-
 
 ## Устанавливаем PYTHONPATH
 #PYTHONPATH=/app exec uvicorn main:app --host 0.0.0.0 --port 8004 --reload

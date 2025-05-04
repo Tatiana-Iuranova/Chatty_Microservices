@@ -7,8 +7,8 @@ from auth_service.database import get_db
 from auth_service.main import app
 from httpx import AsyncClient, ASGITransport
 
-# Лоадим переменные из .env.local
-load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env.local'))
+# переменные из .env.test
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env.test'))
 
 @pytest.fixture(scope="session")
 def test_db_url():

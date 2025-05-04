@@ -1,5 +1,4 @@
 services:
-services:
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
@@ -11,64 +10,54 @@ services:
       RABBITMQ_DEFAULT_PASS: guest
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
-    networks:
-      - app-network
 
-posts_db:
+  posts_Test_db:
     image: postgres:15.3
-    container_name: posts_db
+    container_name: posts_Test_db
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_DB: posts_db
+      POSTGRES_DB: posts_Test_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     volumes:
-      - posts_db_data:/var/lib/postgresql/data
-    networks:
-      - app-network
+      - posts_Test_db_data:/var/lib/postgresql/data
 
   auth_db:
     image: postgres:15.3
-    container_name: auth_db
+    container_name: auth_Test_db
     ports:
       - "5433:5432"
     environment:
-      POSTGRES_DB: auth_db
+      POSTGRES_DB: auth_Test_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     volumes:
-      - auth_db_data:/var/lib/postgresql/data
-    networks:
-      - app-network
+      - auth_Test_db_data:/var/lib/postgresql/data
 
   subscribe_db:
     image: postgres:15.3
-    container_name: subscribe_db
+    container_name: subscribe_Test_db
     ports:
       - "5434:5432"
     environment:
-      POSTGRES_DB: subscribe_db
+      POSTGRES_DB: subscribe_Test_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     volumes:
-      - subscribe_db_data:/var/lib/postgresql/data
-    networks:
-      - app-network
+      - subscribe_Test_db_data:/var/lib/postgresql/data
 
   admin_db:
     image: postgres:15.3
-    container_name: admin_db
+    container_name: admin_Test_db
     ports:
       - "5435:5432"
     environment:
-      POSTGRES_DB: admin_db
+      POSTGRES_DB: admin_Test_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     volumes:
-      - admin_db_data:/var/lib/postgresql/data
-    networks:
-      - app-network
+      - admin_Test_db_data:/var/lib/postgresql/data
 
   posts_service:
     build:
@@ -78,14 +67,12 @@ posts_db:
     ports:
       - "8000:8000"
     env_file:
-      - ./posts_service/.env.local
+      - ./posts_service/.env.test
     volumes:
       - ./posts_service:/app
     depends_on:
-      - posts_db
+      - posts_Test_db
       - rabbitmq
-    networks:
-      - app-network
 
   auth_service:
     build:
@@ -95,14 +82,12 @@ posts_db:
     ports:
       - "8003:8003"
     env_file:
-      - ./auth_service/.env.local
+      - ./auth_service/.env.test
     volumes:
       - ./auth_service:/app
     depends_on:
-      - auth_db
+      - auth_Test_db
       - rabbitmq
-    networks:
-      - app-network
 
   subscription_service:
     build:
@@ -112,14 +97,12 @@ posts_db:
     ports:
       - "8004:8004"
     env_file:
-       - ./subscription_service/.env.local
+       - ./subscription_service/.env.test
     volumes:
       - ./subscription_service:/app
     depends_on:
-      - subscribe_db
+      - subscribe_Test_db
       - rabbitmq
-    networks:
-      - app-network
 
   admin_service:
     build:
@@ -129,14 +112,12 @@ posts_db:
     ports:
       - "8006:8006"
     env_file:
-      - ./admin_service/.env.local
+      - ./admin_service/.env.test
     volumes:
       - ./admin_service:/app
     depends_on:
-      - admin_db
+      - admin_Test_db
       - rabbitmq
-    networks:
-      - app-network
 
   nginx:
     image: nginx:latest
@@ -150,15 +131,10 @@ posts_db:
       - admin_service
       - posts_service
       - subscription_service
-    networks:
-      - app-network
 
-networks:
-  app-network:
-    driver: bridge
 volumes:
   rabbitmq_data:
-  posts_db_data:
-  auth_db_data:
-  subscribe_db_data:
-  admin_db_data:
+  posts_Test_db_data:
+  auth_Test_db_data:
+  subscribe_Test_db_data:
+  admin_Test_db_data:

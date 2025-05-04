@@ -1,16 +1,18 @@
 
 
-import pytest
+
+import pytest, pytest_asyncio
+
 from httpx import AsyncClient
 
-AUTH_SERVICE_URL = "http://auth_service:8003"
+AUTH_SERVICE_URL = "http://localhost:8003"
 
-@pytest.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session")
 async def auth_client():
     async with AsyncClient(base_url=AUTH_SERVICE_URL) as client:
         yield client
 
-@pytest.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session")
 async def user1(auth_client):
     user_data = {
         "email": "user1@example.com",
@@ -34,10 +36,10 @@ async def user1(auth_client):
         "id": response_json.get("user_id") or response_json.get("id")  # зависит от API
     }
 
-@pytest.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session")
 async def user1_token(user1):
     return user1["token"]
 
-@pytest.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session")
 async def user1_id(user1):
     return user1["id"]
