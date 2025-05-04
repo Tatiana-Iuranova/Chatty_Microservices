@@ -1,4 +1,4 @@
-services:
+
 services:
   rabbitmq:
     image: rabbitmq:3-management
@@ -14,7 +14,7 @@ services:
     networks:
       - app-network
 
-posts_db:
+  posts_db:
     image: postgres:15.3
     container_name: posts_db
     ports:
