@@ -1,13 +1,18 @@
 from fastapi import FastAPI
+from faststream.rabbit.fastapi import RabbitRouter, Logger
 from routers.admin_report import report_router
 from routers import admin_users
 
+
+router = RabbitRouter("amqp://guest:guest@rabbitmq:5672/")
 app = FastAPI(
     title="Admin Service API",
     version="1.0.0",
+    description="API для управления администрированием",
     openapi_url="/openapi.json",
     docs_url="/docs",
-    root_path="/api"
+    root_path="/admin",
+    root_path_in_servers=True
 )
 
 app.include_router(report_router, prefix="/report", tags=["Report"])

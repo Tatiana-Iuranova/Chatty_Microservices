@@ -10,10 +10,11 @@ router = RabbitRouter("amqp://guest:guest@rabbitmq:5672/")
 app = FastAPI(
     title="PostService API",
     version="1.0.0",
+    description="API для управления постами, комментариями и лайками",
     openapi_url="/openapi.json",
     docs_url="/docs",
     redoc_url="/redoc",
-    root_path="/api",  # внешний префикс
+    root_path="/posts",  # внешний префикс
     root_path_in_servers=True  # включаем генерацию серверов с префиксом
 )
 

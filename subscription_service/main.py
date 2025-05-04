@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from faststream.rabbit.fastapi import RabbitRouter, Logger
 from routers.subscription_router import router as subscription_router
 from schemas import SubscriptionResponse
 from faststream.rabbit.fastapi import RabbitRouter
@@ -9,13 +10,17 @@ from asyncio import Event
 
 # Создание экземпляра RabbitRouter для подключения к RabbitMQ
 rabbit_router = RabbitRouter("amqp://guest:guest@rabbitmq:5672/")
+
 app = FastAPI(
     title="Subscription Service API",   # Название вашего API
     version="1.0.0",                   # Версия вашего API
     description="API для управления подписками на события",  # Описание API
     openapi_url="/openapi.json",        # URL для OpenAPI JSON документа
     docs_url="/docs",                  # URL для стандартной документации (Swagger UI)
-    redoc_url="/redoc")               # URL для альтернативной документации (ReDoc)
+    redoc_url="/redoc",
+    root_path="/subscribe",
+    root_path_in_servers=True
+)               # URL для альтернативной документации (ReDoc)
 # Подключаем маршруты из отдельных файлов
 app.include_router(subscription_router, prefix="/subscriptions", tags=["subscriptions"])
 
