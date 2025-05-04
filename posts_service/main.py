@@ -3,6 +3,8 @@ from faststream.rabbit.fastapi import RabbitRouter, Logger
 from routers.posts import post_router
 from routers.comment import comment_router
 from routers.like import like_router
+from fastapi.staticfiles import StaticFiles
+from routers import image
 
 # Инициализация FastAPI
 
@@ -17,12 +19,14 @@ app = FastAPI(
     root_path="/posts",  # внешний префикс
     root_path_in_servers=True  # включаем генерацию серверов с префиксом
 )
-
+# Подключение папки со статическими файлами
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Подключение маршрутов
-app.include_router(post_router, prefix="/posts", tags=["Posts"])
+app.include_router(post_router,  tags=["Posts"])
 app.include_router(comment_router, prefix="/comments", tags=["Comments"])
 app.include_router(like_router, prefix="/likes", tags=["Likes"])
+app.include_router(image.router, prefix="/images", tags=["Images"])
 
 # Главная страница
 @app.get("/")
