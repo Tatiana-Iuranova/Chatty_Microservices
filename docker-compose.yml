@@ -9,21 +9,12 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
-
-  email_consumer:
-    build:
-      context: .
-    container_name: email_consumer
-    command: ["sh", "-c", "./wait-for-rabbitmq.sh && python email_consumer.py"]
-    env_file:
-      - .env.local
     volumes:
-      - .:/app
-    depends_on:
-      - rabbitmq
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - app-network
 
-
-  posts_db:
+posts_db:
     image: postgres:15.3
     container_name: posts_db
     ports:
@@ -34,6 +25,8 @@ services:
       POSTGRES_PASSWORD: postgres
     volumes:
       - posts_db_data:/var/lib/postgresql/data
+    networks:
+      - app-network
 
   auth_db:
     image: postgres:15.3
@@ -46,6 +39,8 @@ services:
       POSTGRES_PASSWORD: postgres
     volumes:
       - auth_db_data:/var/lib/postgresql/data
+    networks:
+      - app-network
 
   subscribe_db:
     image: postgres:15.3
@@ -58,6 +53,8 @@ services:
       POSTGRES_PASSWORD: postgres
     volumes:
       - subscribe_db_data:/var/lib/postgresql/data
+    networks:
+      - app-network
 
   admin_db:
     image: postgres:15.3
@@ -70,6 +67,8 @@ services:
       POSTGRES_PASSWORD: postgres
     volumes:
       - admin_db_data:/var/lib/postgresql/data
+    networks:
+      - app-network
 
   posts_service:
     build:
@@ -85,6 +84,8 @@ services:
     depends_on:
       - posts_db
       - rabbitmq
+    networks:
+      - app-network
 
   auth_service:
     build:
@@ -100,6 +101,8 @@ services:
     depends_on:
       - auth_db
       - rabbitmq
+    networks:
+      - app-network
 
   subscription_service:
     build:
@@ -115,6 +118,8 @@ services:
     depends_on:
       - subscribe_db
       - rabbitmq
+    networks:
+      - app-network
 
   admin_service:
     build:
@@ -130,6 +135,8 @@ services:
     depends_on:
       - admin_db
       - rabbitmq
+    networks:
+      - app-network
 
   nginx:
     image: nginx:latest
@@ -143,7 +150,12 @@ services:
       - admin_service
       - posts_service
       - subscription_service
+    networks:
+      - app-network
 
+networks:
+  app-network:
+    driver: bridge
 volumes:
   rabbitmq_data:
   posts_db_data:

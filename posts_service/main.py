@@ -1,8 +1,5 @@
 from fastapi import FastAPI
-
-
 from faststream.rabbit.fastapi import RabbitRouter, Logger
-
 from routers.posts import post_router
 from routers.comment import comment_router
 from routers.like import like_router
