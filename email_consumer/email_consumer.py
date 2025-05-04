@@ -15,11 +15,17 @@ broker = RabbitBroker(RABBITMQ_URL)
 
 @broker.subscriber("user.registered")
 async def handle_user_registered(msg: dict):
+    print("📨 Получено сообщение:", msg)
+
     email = msg.get("email")
-    if email:
-        code = random.randint(100000, 999999)
+    code = msg.get("code")
+
+    if email and code:
         print(f"📩 Отправка кода {code} на {email}")
         await send_email(email, code, "confirmation")
+
+    else:
+        print("⚠️ Получено сообщение без email или кода:", msg)
 
 if __name__ == "__main__":
     import uvloop
