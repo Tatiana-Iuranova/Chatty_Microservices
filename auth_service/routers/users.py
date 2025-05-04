@@ -6,6 +6,10 @@ import schemas
 from database import get_db
 from utils.security import get_password_hash
 from utils.messaging import rabbit_broker  # Импортируем rabbit_broker, не rabbit_router
+from schemas import EmailVerification
+from fastapi import HTTPException
+from sqlalchemy import select
+import random
 
 router = APIRouter()
 
@@ -28,10 +32,14 @@ async def create_user(user_in: schemas.UserCreate, db: AsyncSession = Depends(ge
         raise HTTPException(status_code=400, detail="Этот email уже зарегистрирован")
 
     # Создаем пользователя
+
+    verification_code = str(random.randint(100000, 999999))
+
     user = models.User(
         username=user_in.username,
         email=str(user_in.email),
-        hashed_password=get_password_hash(user_in.password)
+        hashed_password=get_password_hash(user_in.password),
+        verification_code = verification_code
     )
 
     db.add(user)
@@ -41,11 +49,45 @@ async def create_user(user_in: schemas.UserCreate, db: AsyncSession = Depends(ge
     # Публикуем сообщение в RabbitMQ
     try:
         await rabbit_broker.publish(
-            {"username": user_in.username, "email": user_in.email},
-            routing_key="user.registered"  # FastStream требует routing_key
+            {
+                "username": user_in.username,
+                "email": user_in.email,
+                "code": verification_code  # передаём тот же код!
+            },
+            routing_key="user.registered"
         )
         print(f"Message sent to RabbitMQ for user {user_in.username}")
     except Exception as e:
         print(f"Error while sending message to RabbitMQ: {e}")
 
     return schemas.UserResponse(id=user.id, username=user.username, email=user.email)
+
+
+
+
+@router.post("/verify", description="Подтверждение email по коду из письма")
+async def verify_email(data: EmailVerification, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(models.User).where(models.User.email == data.email))
+    user = result.scalar_one_or_none()
+
+
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+
+    if user.is_verified:
+        return {"message": "Email уже подтверждён"}
+
+    print(f"🔍 код в базе: {user.verification_code}, от клиента: {data.code}")
+
+
+
+    if user.verification_code != data.code:
+        raise HTTPException(status_code=400, detail="Неверный код подтверждения")
+
+    user.is_verified = True
+    user.verification_code = None
+    await db.commit()
+
+    return {"message": "Email успешно подтверждён"}
+
+

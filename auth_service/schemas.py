@@ -2,11 +2,12 @@ from pydantic import BaseModel, ConfigDict, EmailStr
 
 
 #Users
+from pydantic import BaseModel, EmailStr
+
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
     username: str
-
 
 class UserLogin(BaseModel):
     email: EmailStr
@@ -19,3 +20,7 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class EmailVerification(BaseModel):
+    email: EmailStr
+    code: str
