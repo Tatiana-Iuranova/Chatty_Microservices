@@ -1,5 +1,4 @@
 services:
-services:
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
@@ -14,7 +13,7 @@ services:
     networks:
       - app-network
 
-posts_db:
+  posts_db:
     image: postgres:15.3
     container_name: posts_db
     ports:
@@ -156,6 +155,7 @@ posts_db:
 networks:
   app-network:
     driver: bridge
+
 volumes:
   rabbitmq_data:
   posts_db_data:

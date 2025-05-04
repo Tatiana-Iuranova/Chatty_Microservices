@@ -3,9 +3,6 @@
 # Выход при ошибке
 set -e
 
-## Устанавливаем PYTHONPATH
-#PYTHONPATH=/app exec uvicorn main:app --host 0.0.0.0 --port 8004 --reload
-
 # Ожидаем запуск базы данных
 wait_for_db(){
   echo "Ждём базу данных на $DB_HOST:$DB_PORT..."

@@ -9,15 +9,15 @@ echo "Using RABBIT_HOST=$RABBIT_HOST"
 echo "Using RABBIT_PORT=$RABBIT_PORT"
 
 wait_for_rabbit() {
-  echo "⏳ Ожидание RabbitMQ на $RABBIT_HOST:$RABBIT_PORT..."
+  echo "Ожидание RabbitMQ на $RABBIT_HOST:$RABBIT_PORT..."
   while ! nc -z "$RABBIT_HOST" "$RABBIT_PORT"; do
-    echo "🐇 RabbitMQ пока не доступен..."
+    echo "RabbitMQ пока не доступен..."
     sleep 1
   done
-  echo "✅ RabbitMQ доступен!"
+  echo "RabbitMQ доступен!"
 }
 
 wait_for_rabbit
 
-echo "🚀 Запуск email_consumer.py..."
+echo "Запуск email_consumer.py..."
 exec python email_consumer.py

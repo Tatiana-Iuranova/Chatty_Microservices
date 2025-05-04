@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from admin_service.database import get_db
-from admin_service.schemas_report import ReportOut
-from admin_service.utils.post_service import async_delete_post, async_delete_comment
+from database import get_db
+from schemas_report import ReportOut
+from utils.post_service import async_delete_post, async_delete_comment
 from typing import List
 from sqlalchemy.future import select
-from admin_service.models import Report
-from admin_service.routers.auth_report import get_current_admin_user
+from models import Report
+from routers.auth_report import get_current_admin_user
 
 
 report_router = APIRouter()
