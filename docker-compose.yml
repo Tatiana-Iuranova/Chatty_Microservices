@@ -14,6 +14,23 @@ services:
     networks:
       - app-network
 
+
+  email_consumer:
+    build:
+      context: ./email_consumer
+    container_name: email_consumer
+    entrypoint: [ "/app/wait-for-rabbitmq.sh" ]
+    env_file:
+      - ./email_consumer/.env.local
+    volumes:
+      - ./email_consumer:/app
+    depends_on:
+      - rabbitmq
+    networks:
+      - app-network
+
+
+
   posts_db:
     image: postgres:15.3
     container_name: posts_db
