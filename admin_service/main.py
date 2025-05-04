@@ -1,7 +1,6 @@
 from fastapi import FastAPI
-from admin_service.routers.admin_report import report_router
-from admin_service.routers import admin_users
-
+from routers.admin_report import report_router
+from routers import admin_users
 
 app = FastAPI(
     title="Admin Service API",
