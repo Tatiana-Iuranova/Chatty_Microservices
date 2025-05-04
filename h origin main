@@ -1,0 +1,119 @@
+[33m5ce478d[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m Revert "Merge pull request #41 from Tatiana-Iuranova/2-S2-Create-the-Auth-Microservice-Email-Verification-Password-Recovery"
+[33mde9d928[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Merge pull request #45 from Tatiana-Iuranova/2-S2-Create-the-Auth-Microservice-Email-Verification-Password-Recovery
+[33m9de5f92[m[33m ([m[1;31morigin/2-S2-Create-the-Auth-Microservice-Email-Verification-Password-Recovery[m[33m, [m[1;32m2-S2-Create-the-Auth-Microservice-Email-Verification-Password-Recovery[m[33m)[m изменения для получения кода подтверждения на емаил
+[33mfb56a0b[m изменения для получения кода подтверждения на емаил
+[33m47dc03e[m Merge pull request #44 from Tatiana-Iuranova/32-testing-and-documentation-for-admin-service
+[33m09c072a[m[33m ([m[1;31morigin/32-testing-and-documentation-for-admin-service[m[33m)[m added .env.test in all microservices and changed BASE_URL = "http://localhost:...."
+[33m038267c[m added .env.test and docker-compose-test.yml
+[33m98b844d[m merge conflicts
+[33mc47e4f2[m chanched imports
+[33m316aad0[m[33m ([m[1;31morigin/4-S3-Admin-Actions-Logging-(audit,--Log)[m[33m)[m Merge pull request #43 from Tatiana-Iuranova/2-S2-Create-the-Auth-Microservice-Email-Verification-Password-Recovery
+[33m0c8d035[m host= db
+[33m7142bac[m Merge pull request #42 from Tatiana-Iuranova/22-innas2-create-the-post-microservice-comments-likes-image-upload
+[33m9864bb8[m[33m ([m[1;31morigin/22-innas2-create-the-post-microservice-comments-likes-image-upload[m[33m)[m Merge branch 'main' into 22-innas2-create-the-post-microservice-comments-likes-image-upload
+[33m4093452[m nginx
+[33mb9905a2[m Merge pull request #41 from Tatiana-Iuranova/2-S2-Create-the-Auth-Microservice-Email-Verification-Password-Recovery
+[33ma2dddf8[m .env.local added in auth_service
+[33m22a76c4[m Merge pull request #40 from Tatiana-Iuranova/22-innas2-create-the-post-microservice-comments-likes-image-upload
+[33m9cd229a[m subscribe_db внесено изменение в настройку
+[33m6e04092[m Merge pull request #39 from Tatiana-Iuranova/22-innas2-create-the-post-microservice-comments-likes-image-upload
+[33m001f8fa[m Запуск docker compose config.py добавлен load_dotenv
+[33mdf370ff[m Merge pull request #38 from Tatiana-Iuranova/22-innas2-create-the-post-microservice-comments-likes-image-upload
+[33m28e6d31[m Модификация всех docker-entrypoint.sh
+[33me656ced[m Merge pull request #37 from Tatiana-Iuranova/2-S2-Create-the-Auth-Microservice-Email-Verification-Password-Recovery
+[33me016acb[m async
+[33ma98f7b8[m git commit -m "Merge branch 'main' into 2-S2-Create-the-Auth-Microservice-Email-Verification-Password-Recovery"
+[33m616de43[m Revert "Настроен правильный DB_HOST для подключения к PostgreSQL внутри Docker-сети (заменён localhost на posts_db)"
+[33mfcea8de[m chanched imports
+[33m7626736[m Настроен правильный DB_HOST для подключения к PostgreSQL внутри Docker-сети (заменён localhost на posts_db)
+[33m9170063[m chanched imports
+[33m0165b89[m Merge pull request #36 from Tatiana-Iuranova/22-innas2-create-the-post-microservice-comments-likes-image-upload
+[33mb36ff81[m Модификация всех docker-entrypoint.sh
+[33mec24707[m Merge remote-tracking branch 'origin/22-innas2-create-the-post-microservice-comments-likes-image-upload' into 22-innas2-create-the-post-microservice-comments-likes-image-upload
+[33m8bd2748[m Модификация всех docker-entrypoint.sh
+[33m3fc2bcc[m Merge pull request #35 from Tatiana-Iuranova/32-testing-and-documentation-for-admin-service
+[33m710f7ab[m The tests have been added to Admin_service.
+[33m073e07c[m Модификация subscrption
+[33mf02096e[m Merge pull request #33 from Tatiana-Iuranova/2-S2-Create-the-Auth-Microservice-Email-Verification-Password-Recovery
+[33mc60e904[m Настроен правильный DB_HOST для подключения к PostgreSQL внутри Docker-сети (заменён localhost на posts_db)
+[33m1458452[m Добавление admin_service
+[33m2124ab4[m Merge branch 'main' of github.com:Tatiana-Iuranova/Chatty_Microservices
+[33m2e1645c[m The tests have been added to each microservice.
+[33m44bd8a3[m Merge pull request #31 from Tatiana-Iuranova/2-S2-Create-the-Auth-Microservice-Email-Verification-Password-Recovery
+[33m0cae224[m Добавлена передача переменных окружения DB_HOST и DB_PORT для auth_service из .env.local через docker-compose. В скрипте docker-entrypoint.sh добавлены значения по умолчанию на случай отсутствия переменных. Теперь auth_service корректно ожидает доступность БД перед запуском Alembic и uvicorn.
+[33mf88990a[m Merge main with origin/main
+[33m0841f08[m Merge pull request #30 from Tatiana-Iuranova/22-innas2-create-the-post-microservice-comments-likes-image-upload
+[33mc42c5ee[m Merge branch 'main' into 22-innas2-create-the-post-microservice-comments-likes-image-upload
+[33m49628fa[m Добавление admin_service
+[33m7c4d780[m Модификация  Post, Like, Comment
+[33mfc7741e[m Модификация  Post, Like, Comment
+[33me067302[m integration_tests
+[33me0825f7[m - Публикация события user_subscribed и user_unsubscribed - Интеграция FastStream RabbitRouter в main.py - Подписка post-сервиса на события и обновление ленты"
+[33mf9c4379[m - Публикация события user_subscribed и user_unsubscribed - Интеграция FastStream RabbitRouter в main.py - Подписка post-сервиса на события и обновление ленты"
+[33m569ff6f[m integration_tests
+[33mf36724c[m Merge pull request #29 from Tatiana-Iuranova/6-s2-implement-integration-tests-auth-post-subscription
+[33m05058f9[m[33m ([m[1;31morigin/6-s2-implement-integration-tests-auth-post-subscription[m[33m)[m Merge branch 'main' into 6-s2-implement-integration-tests-auth-post-subscription
+[33m0c38ea1[m tests.py, Dockerfile
+[33m52d735a[m tests in docker-compose.yml
+[33m124be2e[m tests
+[33ma5d54e1[m added changes: from asyncio import Event, @rabbit_router.subscriber, subscribe_db
+[33m3b3aeca[m added changes: from faststream.rabbit.fastapi import RabbitRouter
+[33m25cb32c[m Merge pull request #28 from Tatiana-Iuranova/5-S2]-Configure-RabbitMQ-and-Event-Driven-Integration-Between-Services
+[33m6a79052[m[33m ([m[1;31morigin/5-S2]-Configure-RabbitMQ-and-Event-Driven-Integration-Between-Services[m[33m)[m Merge branch 'main' into 5-S2]-Configure-RabbitMQ-and-Event-Driven-Integration-Between-Services
+[33m72ac443[m - Публикация события user_subscribed и user_unsubscribed - Интеграция FastStream RabbitRouter в main.py - Подписка post-сервиса на события и обновление ленты"
+[33m2acd814[m Merge branch 'main' of github.com:Tatiana-Iuranova/Chatty_Microservices into 6-s2-implement-integration-tests-auth-post-subscription
+[33md7bc107[m added tests.py
+[33m8e7ba1c[m Merge pull request #26 from Tatiana-Iuranova/5-S2]-Configure-RabbitMQ-and-Event-Driven-Integration-Between-Services
+[33mee36a37[m Merge pull request #27 from Tatiana-Iuranova/22-innas2-create-the-post-microservice-comments-likes-image-upload
+[33m2f9ca6d[m Модификация  Post, Like, Comment
+[33m41b1362[m docker-compose.yml:Настроены переменные окружения для подключения к RabbitMQ (RABBITMQ_URL) для всех сервисов (auth_service, posts_service, subscription_service). - Указаны порты для RabbitMQ (5672 для AMQP и 15672 для веб-интерфейса управления) main.py/auth_service:Настроены параметры FastAPI для документации OpenAPI (openapi_url, docs_url, redoc_url).
+[33m60ae534[m Merge pull request #23 from Tatiana-Iuranova/2-S2-Create-the-Auth-Microservice-Email-Verification-Password-Recovery
+[33m4233a93[m Merge pull request #25 from Tatiana-Iuranova/22-innas2-create-the-post-microservice-comments-likes-image-upload
+[33mc7b592f[m Миграция "create Post, Like, Comment"
+[33m00f0b1c[m 1. Создана модель `Post` 2. Созданы эндпоинты: POST: `/posts`, PUT/PATCH: `/posts/{post_id}`, DELETE: `/posts/{post_id}`, POST: `/likes`, DELETE: `/likes/{post_id}`, POST: `/comments`, GET: `/comments/{post_id}`, PUT/PATCH: `/comments/{comment_id}`, DELETE: `/comments/{comment_id}`
+[33m052c7b7[m Merge pull request #24 from Tatiana-Iuranova/4-s2-create-the-subscription-microservice-following-feed
+[33m9310b40[m[33m ([m[1;31morigin/4-s2-create-the-subscription-microservice-following-feed[m[33m)[m Настройте Docker-Compose для запуска subscription_service_ версия2
+[33m110e671[m  исправлены относительные пути импорта внутренних модулей.обавлены отсутствующие DEBUG и APP_NAME в AuthSettings
+[33ma34473c[m added tests.py
+[33me6e1239[m Merge pull request #21 from Tatiana-Iuranova/4-s2-create-the-subscription-microservice-following-feed
+[33m36658b4[m Настройте Docker-Compose для запуска subscription_service_ версия2
+[33m9dbfc93[m Merge pull request #20 from Tatiana-Iuranova/4-s2-create-the-subscription-microservice-following-feed
+[33mccd454e[m Настройте Docker-Compose для запуска subscription_service
+[33m1987746[m Merge branch 'main' of github.com:Tatiana-Iuranova/Chatty_Microservices into 6-s2-implement-integration-tests-auth-post-subscription
+[33m4afad2e[m Merge pull request #19 from Tatiana-Iuranova/4-s2-create-the-subscription-microservice-following-feed
+[33m06b363e[m  docker-entrypoint.sh
+[33m78581e6[m Merge branch 'main' of github.com:Tatiana-Iuranova/Chatty_Microservices into 6-s2-implement-integration-tests-auth-post-subscription
+[33m4a49b33[m added tests.py
+[33m12f9bce[m added Start the server "docker-compose up -d --build "
+[33m8445ef8[m Merge pull request #18 from Tatiana-Iuranova/4-s2-create-the-subscription-microservice-following-feed
+[33m516b150[m  docker-entrypoint.sh
+[33m8b1bef0[m  docker-entrypoint.sh
+[33m26b4666[m Merge pull request #17 from Tatiana-Iuranova/4-s2-create-the-subscription-microservice-following-feed
+[33mc90daf1[m  Эндпоинты  1.подписки,  2.отписки,  3.получения списка подписок/подписчиков,  4.получения ленты постов подписанных пользователем,  5.задокументированы.
+[33m62473d3[m Merge pull request #16 from Tatiana-Iuranova/2-S2-Create-the-Auth-Microservice-Email-Verification-Password-Recovery
+[33mb0635cd[m Файл миграции,который был создан при обновление модели User и добавление is_active
+[33m752e851[m Merge pull request #15 from Tatiana-Iuranova/2-S2-Create-the-Auth-Microservice-Email-Verification-Password-Recovery
+[33m190db78[m Добавлен endpoint для активации пользователя и описание Swagger для маршрутов авторизации и регистрации".Данные из файла .env.local перенесены в общий файл .env.local
+[33m75fa93c[m - Добавлен эндпоинт `/users/{user_id}/activate` для активации пользователя. - Обновлен файл `schemas.py` для возврата флага `is_active` в ответе.
+[33m6976aad[m Merge pull request #14 from Tatiana-Iuranova/2-S2-Create-the-Auth-Microservice-Email-Verification-Password-Recovery
+[33m0ddd692[m added changes in .env.local
+[33m830a08e[m добавлен флаг is_active для отслеживания подтверждения аккаунта,создана новая миграция
+[33ma01b074[m Merge remote-tracking branch 'origin/main'
+[33ma5fbc3d[m added changes in docker-compose.yml
+[33mb226596[m Merge pull request #13 from Tatiana-Iuranova/2-S2-Create-the-Auth-Microservice-Email-Verification-Password-Recovery
+[33m2eb8aef[m обновлены  файлы :Dockerfile i docker-entrypoint.sh
+[33mab40822[m Merge pull request #12 from Tatiana-Iuranova/2-S2-Create-the-Auth-Microservice-Email-Verification-Password-Recovery
+[33m4d49094[m исправлена ошибка в auth.py
+[33mefa175c[m Merge pull request #11 from Tatiana-Iuranova/4-s2-create-the-subscription-microservice-following-feed
+[33mc0d9472[m Merge pull request #10 from Tatiana-Iuranova/2-S2-Create-the-Auth-Microservice-Email-Verification-Password-Recovery
+[33mab10ef0[m Настроен Alembic в auth_service (инициализация + конфиг), Добавлена модель User и конфигурация подключения к БД,создана и применена миграция для таблицы users
+[33m1bc509d[m Эндпоинты подписки, отписки и получения ленты работают
+[33mc193155[m Merge pull request #9 from Tatiana-Iuranova/4-s2-create-the-subscription-microservice-following-feed
+[33mfc7a4f7[m Миграция таблицы `subscriptions` (user_id, follower_id).
+[33meffb6ac[m Merge pull request #8 from Tatiana-Iuranova/4-s2-create-the-subscription-microservice-following-feed
+[33m1a083a3[m 1. Создана модель `subscriptions`, в которой хранится информация о том, кто на кого подписан. 2. Эндпоинты подписки, отписки.
+[33m1233ce6[m Merge pull request #7 from Tatiana-Iuranova/2-S2-Create-the-Auth-Microservice-Email-Verification-Password-Recovery
+[33md2f96b3[m добавлены файлы с монолитной версии,установлены зависимости,добавлен  alembic
+[33m3e52a07[m requirements.txt установлено
+[33m00f89d5[m[33m ([m[1;31morigin/3-s2-create-the-post-microservice-comments-likes-image-upload[m[33m, [m[1;31morigin/1-s2-split-the-project-into-microservices-basic-structure[m[33m)[m the Project was splited into Microservices (Basic Structure)
+[33meb5ef6e[m Initial commit
