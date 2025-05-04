@@ -10,7 +10,7 @@ async def send_email(recipient_email: str, code: int, email_type: str):
     sender_email = os.getenv("EMAIL_USER")
     password = os.getenv("EMAIL_PASSWORD")
     smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
-    smtp_port = int(os.getenv("SMTP_PORT", 587))  # TLS-порт
+    smtp_port = int(os.getenv("SMTP_PORT", 587))
 
     if not sender_email or not password:
         print("❌ EMAIL_USER или EMAIL_PASSWORD не указаны")
@@ -42,7 +42,6 @@ async def send_email(recipient_email: str, code: int, email_type: str):
             start_tls=True,
         )
         print(f"✅ Email отправлен на {recipient_email}")
-
     except aiosmtplib.SMTPAuthenticationError:
         print("❌ Ошибка авторизации. Проверь EMAIL_USER и EMAIL_PASSWORD.")
     except Exception as e:
