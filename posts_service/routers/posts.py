@@ -7,17 +7,19 @@ from typing import List
 from models import Post
 from database import get_db
 from schemas import PostCreate, PostUpdate, PostInDB
+from fastapi import Query
 import logging
+import httpx
 import aio_pika  # Используем aio-pika для асинхронной работы с RabbitMQ
 
 # Настройка логирования
 logger = logging.getLogger(__name__)
 
 # Конфигурация RabbitMQ (с использованием aio-pika)
-async def get_rabbitmq_channel():
-    connection = await aio_pika.connect_robust("amqp://guest:guest@rabbitmq:5672/")
-    channel = await connection.channel()
-    return channel
+# async def get_rabbitmq_channel():
+#     connection = await aio_pika.connect_robust("amqp://guest:guest@rabbitmq:5672/")
+#     channel = await connection.channel()
+#     return channel
 
 # Создаём функцию для публикации события
 async def publish_post_created(post_data):
@@ -66,14 +68,21 @@ async def create_post(post: PostCreate, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Ошибка при публикации события")
 
 # Получение всех постов
-@post_router.get("/", response_model=List[PostInDB], summary="Получить список постов")
+@post_router.get(
+    "/",
+    response_model=List[PostInDB],
+    summary="Получить список постов")
 async def get_all_posts(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Post))
     posts = result.scalars().all()
     return posts
 
 # Получение одного поста по ID
-@post_router.get("/{post_id}", response_model=PostInDB, summary="Получить конкретный пост")
+@post_router.get(
+    "/{post_id}",
+    response_model=PostInDB,
+    summary="Получить конкретный пост")
+
 async def get_post(post_id: int, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Post).where(Post.id == post_id))
     post = result.scalars().first()
@@ -82,7 +91,10 @@ async def get_post(post_id: int, db: AsyncSession = Depends(get_db)):
     return post
 
 # Обновление поста
-@post_router.put("/{post_id}", response_model=PostInDB, summary="Редактировать пост")
+@post_router.put(
+    "/{post_id}",
+    response_model=PostInDB,
+    summary="Редактировать пост")
 async def update_post(post_id: int, post: PostUpdate, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Post).filter(Post.id == post_id))
     db_post = result.scalars().first()
@@ -97,7 +109,10 @@ async def update_post(post_id: int, post: PostUpdate, db: AsyncSession = Depends
     return db_post
 
 # Удаление поста
-@post_router.delete("/{post_id}", response_model=PostInDB, summary="Удалить пост")
+@post_router.delete(
+    "/{post_id}",
+    response_model=PostInDB,
+    summary="Удалить пост")
 async def delete_post(post_id: int, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Post).filter(Post.id == post_id))
     db_post = result.scalars().first()
@@ -108,9 +123,16 @@ async def delete_post(post_id: int, db: AsyncSession = Depends(get_db)):
     await db.commit()
     return db_post
 
-# Получение постов по конкретному user_id (заменил метод на GET)
-@post_router.get("/posts/by_user", response_model=List[PostInDB], summary="Получить посты по пользователям")
-async def get_posts_by_users(user_ids: List[int], db: AsyncSession = Depends(get_db)):
+
+@post_router.get(
+    "/posts/by_user",
+    response_model=List[PostInDB],
+    summary="Получить посты по пользователям")
+
+async def get_posts_by_users(
+        user_ids: List[int] = Query(..., description="Список идентификаторов пользователей для фильтрации постов"),
+        db: AsyncSession = Depends(get_db)
+):
     result = await db.execute(select(Post).where(Post.user_id.in_(user_ids)))
     posts = result.scalars().all()
     return posts
