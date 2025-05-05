@@ -1,10 +1,7 @@
 import pytest
 
-from admin_service.tests.test_users import ADMIN_TOKEN
-
-
 @pytest.mark.asyncio
-async def test_get_reports(client):
-    response = await client.get("/reports", headers={"Authorization": ADMIN_TOKEN})
+async def test_get_reports(client, admin_token):
+    response = await client.get("/reports", headers={"Authorization": admin_token})
     assert response.status_code == 200
     assert isinstance(response.json(), list)

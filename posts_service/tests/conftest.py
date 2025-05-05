@@ -5,7 +5,7 @@ import pytest, pytest_asyncio
 
 from httpx import AsyncClient
 
-AUTH_SERVICE_URL = "http://localhost:8003"
+AUTH_SERVICE_URL = "http://auth_service:8003"
 
 @pytest_asyncio.fixture(scope="session")
 async def auth_client():

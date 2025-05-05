@@ -1,14 +1,11 @@
 import pytest
 
-from admin_service.tests.test_users import ADMIN_TOKEN
-
+@pytest.mark.asyncio
+async def test_delete_post_success(client, admin_token):
+    response = await client.delete("/posts/123", headers={"Authorization": admin_token})
+    assert response.status_code in (204, 404)
 
 @pytest.mark.asyncio
-async def test_delete_post_success(client):
-    response = await client.delete("/posts/123", headers={"Authorization": ADMIN_TOKEN})
-    assert response.status_code in (204, 404)  # если поста нет — тоже ок
-
-@pytest.mark.asyncio
-async def test_delete_comment_success(client):
-    response = await client.delete("/comments/321", headers={"Authorization": ADMIN_TOKEN})
+async def test_delete_comment_success(client, admin_token):
+    response = await client.delete("/comments/321", headers={"Authorization": admin_token})
     assert response.status_code in (204, 404)

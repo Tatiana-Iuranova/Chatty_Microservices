@@ -1,17 +1,14 @@
 import pytest
-import pytest_asyncio
 from httpx import AsyncClient
-import sys
-import os
 
-# Добавляем путь к проекту в sys.path для корректного импорта
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'app')))
+BASE_URL = "http://admin_service:8006"  # 👈 имя сервиса в docker-compose-test.yml
 
-from admin_service.main import app  # где запускается FastAPI
-from sqlalchemy.ext.asyncio import AsyncSession
-from admin_service.database import get_db
-
-@pytest_asyncio.fixture(scope="module")
+@pytest.fixture(scope="session")
 async def client():
-    async with AsyncClient(app=app, base_url="http://testserver") as ac:
+    async with AsyncClient(base_url=BASE_URL) as ac:
         yield ac
+
+@pytest.fixture(scope="session")
+def admin_token():
+    # Тут ты можешь подставить реальный токен или добавить авторизацию через login-эндпоинт
+    return "Bearer valid_admin_token"
