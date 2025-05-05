@@ -17,6 +17,7 @@ class UserResponse(BaseModel):
     id: int
     email: str
     username: str
+    is_admin: bool
 
     class Config:
         from_attributes = True
@@ -24,3 +25,13 @@ class UserResponse(BaseModel):
 class EmailVerification(BaseModel):
     email: EmailStr
     code: str
+
+
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+
+class PasswordResetConfirm(BaseModel):
+    email: EmailStr
+    code: str
+    new_password: str
+

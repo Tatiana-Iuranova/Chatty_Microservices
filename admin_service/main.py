@@ -16,6 +16,8 @@ app = FastAPI(
 )
 
 app.include_router(report_router, prefix="/report", tags=["Report"])
+app.include_router(admin_users.router,prefix="/admin", tags=["admin"])
+
 
 @app.on_event("startup")
 async def startup_event():
@@ -26,6 +28,7 @@ async def shutdown_event():
     await rabbit_broker.close()
 
 app.include_router(admin_users.router)
+
 @app.get("/")
 async def read_root():
     return {"message": "Welcome to the Admin Service API"}
