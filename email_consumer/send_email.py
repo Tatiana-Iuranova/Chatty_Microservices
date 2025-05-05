@@ -24,8 +24,14 @@ async def send_email(recipient_email: str, code: int, email_type: str):
         message["Subject"] = "Код подтверждения"
         body = f"Ваш код подтверждения: {code}"
     elif email_type == "password_reset":
-        message["Subject"] = "Код для сброса пароля"
-        body = f"Ваш код для сброса пароля: {code}"
+        message["Subject"] = "Сброс пароля для вашего аккаунта"
+        body = (
+            f"Вы запросили сброс пароля.\n"
+            f"Введите следующий код для подтверждения:\n\n"
+            f"{code}\n\n"
+            f"Если вы не запрашивали сброс — просто проигнорируйте это письмо."
+        )
+
     else:
         print("❌ Неизвестный тип email:", email_type)
         return
