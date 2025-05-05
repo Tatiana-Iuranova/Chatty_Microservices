@@ -8,13 +8,13 @@ from fastapi import Depends, HTTPException
 from jose import jwt, JWTError
 
 
-bearer_scheme = HTTPBearer()
+oauth2_scheme = HTTPBearer()
 
-SECRET_KEY = "your-secret"  # обязательно должен совпадать с тем, что в auth_service
+SECRET_KEY = "your_very_secure_secret_key" # обязательно должен совпадать с тем, что в auth_service
 ALGORITHM = "HS256"
 
 async def get_current_admin_user(
-    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)
+    credentials: HTTPAuthorizationCredentials = Depends(oauth2_scheme)
 ):
     token = credentials.credentials
     try:
