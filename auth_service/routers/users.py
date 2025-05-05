@@ -141,3 +141,12 @@ async def reset_password(data: PasswordResetConfirm, db: AsyncSession = Depends(
     await db.commit()
 
     return {"message": "Пароль успешно сброшен"}
+
+@router.get("/users/{user_id}", response_model=schemas.UserResponse)
+async def get_user(user_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(models.User).where(models.User.id == user_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+    return user
+

@@ -53,4 +53,4 @@ async def change_role(user_id: int, role: str):
 
 async def is_admin(user_id: int) -> bool:
     user = await get_user(user_id)
-    return bool(user and user.get("role") == "admin")
+    return bool(user and user.get("is_admin") is True)
