@@ -1,7 +1,7 @@
 """create Post, Like, Comment
 
 Revision ID: 26c9a3cc963c
-Revises: 
+Revises:
 Create Date: 2025-04-09 21:04:07.396908
 
 """
