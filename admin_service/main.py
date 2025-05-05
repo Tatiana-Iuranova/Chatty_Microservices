@@ -16,7 +16,7 @@ app = FastAPI(
 )
 
 app.include_router(report_router, prefix="/report", tags=["Report"])
-app.include_router(admin_users.router)
+app.include_router(admin_users.router,prefix="/admin", tags=["admin"])
 @app.get("/")
 async def read_root():
     return {"message": "Welcome to the Admin Service API"}

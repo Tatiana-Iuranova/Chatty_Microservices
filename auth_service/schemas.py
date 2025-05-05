@@ -17,6 +17,7 @@ class UserResponse(BaseModel):
     id: int
     email: str
     username: str
+    is_admin: bool
 
     class Config:
         from_attributes = True
