@@ -1,13 +1,15 @@
 #!/bin/bash
 set -e
 
-# Загрузка переменных окружения
-if [ -f "$ENV_FILE" ]; then
-  echo "Загружаем переменные из $ENV_FILE"
-  export $(grep -v '^#' "$ENV_FILE" | xargs)
-fi
+# Отладочный вывод
+echo "Используемые переменные окружения:"
+echo "DB_HOST=$DB_HOST"
+echo "DB_PORT=$DB_PORT"
+echo "DB_USER=$DB_USER"
+echo "DB_PASSWORD=$DB_PASSWORD"
+echo "DB_NAME=$DB_NAME"
 
-# Проверка доступности БД
+# Ожидаем доступность БД
 wait_for_db() {
   echo "Ждём базу данных на $DB_HOST:$DB_PORT..."
   while ! nc -z "$DB_HOST" "$DB_PORT"; do
@@ -18,13 +20,14 @@ wait_for_db() {
 
 wait_for_db
 
-echo "Патчим alembic.ini URL на тестовую БД..."
-sed -i "s|sqlalchemy.url = .*|sqlalchemy.url = postgresql+asyncpg://$DB_USER:$DB_PASSWORD@$DB_HOST:$DB_PORT/$DB_NAME|" alembic.ini
+# Патчим alembic.ini на актуальные переменные
+echo "Патчим alembic.ini..."
+sed -i "s|^sqlalchemy.url = .*|sqlalchemy.url = postgresql+asyncpg://$DB_USER:$DB_PASSWORD@$DB_HOST:$DB_PORT/$DB_NAME|" alembic.ini
 
 # Применяем миграции
 echo "Применяем миграции Alembic..."
 alembic upgrade head
 
-# Запускаем приложение
+# Запускаем FastAPI
 echo "Запуск FastAPI приложения..."
 exec uvicorn main:app --host 0.0.0.0 --port 8006 --reload

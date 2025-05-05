@@ -66,6 +66,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
+    environment:
+      - ENV_FILE=/app/.env.test
     env_file:
       - ./posts_service/.env.test
     volumes:
@@ -83,6 +85,8 @@ services:
       - "8003:8003"
     env_file:
       - ./auth_service/.env.test
+    environment:
+      - ENV_FILE=/app/.env.test
     volumes:
       - ./auth_service:/app
     depends_on:
@@ -98,6 +102,8 @@ services:
       - "8004:8004"
     env_file:
        - ./subscription_service/.env.test
+    environment:
+      - ENV_FILE=/app/.env.test
     volumes:
       - ./subscription_service:/app
     depends_on:

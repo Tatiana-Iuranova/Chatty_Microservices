@@ -96,6 +96,8 @@ services:
       - "8000:8000"
     env_file:
       - ./posts_service/.env.local
+    environment:
+      - ENV_FILE=/app/.env.local
     volumes:
       - ./posts_service:/app
     depends_on:
@@ -113,6 +115,8 @@ services:
       - "8003:8003"
     env_file:
       - ./auth_service/.env.local
+    environment:
+      - ENV_FILE=/app/.env.local
     volumes:
       - ./auth_service:/app
     depends_on:
@@ -130,6 +134,8 @@ services:
       - "8004:8004"
     env_file:
        - ./subscription_service/.env.local
+    environment:
+      - ENV_FILE=/app/.env.local
     volumes:
       - ./subscription_service:/app
     depends_on:
