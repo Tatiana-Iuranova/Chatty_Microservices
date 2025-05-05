@@ -15,3 +15,5 @@
 
 docker builder prune -af
 docker-compose up -d --build
+
+9. Configure Docker-Compose-Test to run "docker-compose -p docker-compose-test up -d --build"

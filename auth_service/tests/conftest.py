@@ -12,11 +12,11 @@ load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env.test'))
 
 @pytest.fixture(scope="session")
 def test_db_url():
-    user = os.getenv("TEST_DB_USER")
-    pwd  = os.getenv("TEST_DB_PASSWORD")
-    host = os.getenv("TEST_DB_HOST")
-    port = os.getenv("TEST_DB_PORT")
-    name = os.getenv("TEST_DB_NAME")
+    user = os.getenv("TEST_AUTH_DB_USER")
+    pwd  = os.getenv("TEST_AUTH_DB_PASSWORD")
+    host = os.getenv("TEST_AUTH_DB_HOST")
+    port = os.getenv("TEST_AUTH_DB_PORT")
+    name = os.getenv("TEST_AUTH_DB_NAME")
     return f"postgresql+asyncpg://{user}:{pwd}@{host}:{port}/{name}"
 
 @pytest_asyncio.fixture(scope="session")

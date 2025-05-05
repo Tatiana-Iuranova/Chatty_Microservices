@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from database import get_db
+from ..database import get_db
 from schemas_report import ReportOut
 from utils.post_service import async_delete_post, async_delete_comment
 from typing import List
