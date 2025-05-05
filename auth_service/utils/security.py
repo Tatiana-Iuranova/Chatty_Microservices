@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+import models
 
 from models import User
 from database import get_db
