@@ -7,7 +7,8 @@ from models import Subscription
 from database import get_db
 import httpx
 from faststream.rabbit.fastapi import RabbitRouter
-from asyncio import Event
+from faststream.rabbit import RabbitQueue
+
 
 
 # Подключаем RabbitMQ через FastStream
@@ -44,9 +45,10 @@ async def unfollow(db: AsyncSession, user_id: int, follower_id: int) -> dict:
 
     await db.delete(subscription)
     await db.commit()
-    await rabbit_router.publish(
-        "user_unsubscribed",
-        Event(payload={"user_id": user_id, "follower_id": follower_id})
+    user_unsubscribed_queue = RabbitQueue("user_unsubscribed")
+    await rabbit_router.broker.publish(
+        {"user_id": user_id, "follower_id": follower_id},
+        queue=user_unsubscribed_queue
     )
     return {"message": "Подписка удалена"}
 
@@ -103,48 +105,50 @@ async def subscriptions(
 
 
 @router.get(
-    "/followers",
+    "/followers/{user_id}",
     summary="Список подписчиков пользователя",
     description="Получение ID пользователей, которые подписаны на пользователя"
 )
 async def followers(
-    user_id: int = Query(..., description="ID пользователя"),
-    db: AsyncSession = Depends(get_db)
+        user_id: int =  Path(..., description="ID пользователя"),
+        db: AsyncSession = Depends(get_db)
 ):
     result = await db.execute(
         select(Subscription.follower_id).where(Subscription.user_id == user_id)
     )
-    return result.scalars().all()
-
+    return {"followers": result.scalars().all()}
 
 @router.get(
     "/feed/{user_id}",
     summary="Лента постов пользователя",
-    description="Получает посты от пользователей, на которых подписан пользователь"
+    description="Посты от пользователей, на которых подписан пользователь"
 )
 async def get_feed(
     user_id: int = Path(..., description="ID пользователя"),
     db: AsyncSession = Depends(get_db)
 ):
+    # Получаем ID пользователей, на которых подписан текущий пользователь
     result = await db.execute(
-        text("SELECT follower_id FROM subscriptions WHERE user_id = :user_id"),
-        {"user_id": user_id}
+        select(Subscription.user_id).where(Subscription.follower_id == user_id)
     )
-    follower_ids = [row[0] for row in result.fetchall()]
+    subscribed_user_ids = result.scalars().all()
 
-    if not follower_ids:
+    if not subscribed_user_ids:
         return {"posts": []}
 
     try:
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                "http://post_service/posts/by_users",
-                json={"user_ids": follower_ids}
+        # Запросы через GET для каждого user_id
+        posts = []
+        for uid in subscribed_user_ids:
+            response = await httpx.get(
+                f"http://posts_service:8000/posts/{uid}/posts"  # Обновлено на GET запрос
             )
             response.raise_for_status()
-            posts = response.json()
-    except httpx.HTTPError as e:
-        return {"error": f"Post service error: {str(e)}"}
+            posts.extend(response.json())
 
-    sorted_posts = sorted(posts, key=lambda x: x.get("created_at", ""), reverse=True)
-    return {"posts": sorted_posts}
+        # Сортировка постов по времени создания
+        sorted_posts = sorted(posts, key=lambda x: x.get("created_at", ""), reverse=True)
+        return {"posts": sorted_posts}
+
+    except httpx.HTTPError as e:
+        return {"error": f"Posts service error: {str(e)}"}
