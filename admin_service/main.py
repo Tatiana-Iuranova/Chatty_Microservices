@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from faststream.rabbit.fastapi import RabbitRouter, Logger
-from admin_service.routers.admin_report import report_router
-from admin_service.routers import admin_users
+from routers.admin_report import report_router
+from routers import admin_users
 
 
 router = RabbitRouter("amqp://guest:guest@rabbitmq:5672/")
