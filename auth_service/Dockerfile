@@ -14,5 +14,8 @@ RUN pip install --no-cache-dir --upgrade pip \
 RUN chmod +x docker-entrypoint.sh
 
 EXPOSE 8003
+
+ENV ENV_FILE="/app/.env.test"
+
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
 
