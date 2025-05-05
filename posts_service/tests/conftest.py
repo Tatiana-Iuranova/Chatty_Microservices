@@ -1,8 +1,4 @@
-
-
-
 import pytest, pytest_asyncio
-
 from httpx import AsyncClient
 
 AUTH_SERVICE_URL = "http://localhost:8003"
