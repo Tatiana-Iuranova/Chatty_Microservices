@@ -1,4 +1,4 @@
-# admin_service/routers/admin_users.py
+
 from fastapi import APIRouter, Depends, HTTPException
 from dependencies import get_current_admin_user
 from utils.auth_client import get_all_users, set_block_status, change_role
