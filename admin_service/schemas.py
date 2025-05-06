@@ -2,8 +2,8 @@ from pydantic import BaseModel, EmailStr
 
 class UserOut(BaseModel):
     id: int
-    username: str
     email: EmailStr
+    username: str
     is_admin: bool
 
     class Config:
