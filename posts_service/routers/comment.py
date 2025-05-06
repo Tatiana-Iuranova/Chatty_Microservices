@@ -5,7 +5,7 @@ from schemas import CommentBase, CommentCreate, CommentUpdate, CommentInDB
 from models import Comment
 from database import get_db
 from dependencies import get_current_user
-
+from models import Post
 
 comment_router = APIRouter()
 
@@ -59,6 +59,11 @@ async def create_comment_endpoint(
     db: AsyncSession = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
+    # Проверка: существует ли пост
+    result = await db.execute(select(Post).where(Post.id == comment.post_id))
+    post = result.scalars().first()
+    if post is None:
+        raise HTTPException(status_code=404, detail="Пост не найден")
     return await create_comment(db, comment)
 
 # Получение комментариев для поста
