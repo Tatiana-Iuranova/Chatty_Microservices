@@ -14,6 +14,10 @@ wait_for_db(){
   echo "База данных доступна!"
 }
 wait_for_db
+
+echo "Патчим alembic.ini URL на тестовую БД..."
+sed -i "s|sqlalchemy.url = .*|sqlalchemy.url = postgresql+asyncpg://$DB_USER:$DB_PASSWORD@$DB_HOST:$DB_PORT/$DB_NAME|" alembic.ini
+
 # Применяем миграции
 echo "Применяем миграции Alembic..."
 alembic upgrade head

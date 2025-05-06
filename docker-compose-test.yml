@@ -1,17 +1,16 @@
 services:
   rabbitmq:
     image: rabbitmq:3-management
-    container_name: rabbitmq_test
     ports:
       - "5672:5672"
       - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
+    networks: [test-network]
     volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-    networks:
-      - app-network
+      - rabbitmq_data_test:/var/lib/rabbitmq
+
 
   posts_Test_db:
     image: postgres:15.3
@@ -23,12 +22,10 @@ services:
       POSTGRES_PASSWORD: postgres
     volumes:
       - posts_Test_db_data:/var/lib/postgresql/data
-    networks:
-      - app-network
+    networks: [test-network]
 
   auth_Test_db:
     image: postgres:15.3
-
     ports:
       - "5433:5432"
     environment:
@@ -37,12 +34,10 @@ services:
       POSTGRES_PASSWORD: postgres
     volumes:
       - auth_Test_db_data:/var/lib/postgresql/data
-    networks:
-      - app-network
+    networks: [test-network]
 
   subscribe_Test_db:
     image: postgres:15.3
-
     ports:
       - "5434:5432"
     environment:
@@ -51,13 +46,10 @@ services:
       POSTGRES_PASSWORD: postgres
     volumes:
       - subscribe_Test_db_data:/var/lib/postgresql/data
-
-    networks:
-      - app-network
+    networks: [test-network]
 
   admin_Test_db:
     image: postgres:15.3
-
     ports:
       - "5435:5432"
     environment:
@@ -66,17 +58,16 @@ services:
       POSTGRES_PASSWORD: postgres
     volumes:
       - admin_Test_db_data:/var/lib/postgresql/data
-
-    networks:
-      - app-network
+    networks: [test-network]
 
   posts_service:
     build:
       context: ./posts_service
       dockerfile: Dockerfile
-
     ports:
       - "8000:8000"
+    environment:
+      - ENV_FILE=/app/.env.test
     env_file:
       - ./posts_service/.env.test
     volumes:
@@ -84,49 +75,46 @@ services:
     depends_on:
       - posts_Test_db
       - rabbitmq
-
-    networks:
-      - app-network
+    networks: [test-network]
 
   auth_service:
     build:
       context: ./auth_service
       dockerfile: Dockerfile
-
     ports:
       - "8003:8003"
     env_file:
       - ./auth_service/.env.test
+    environment:
+      - ENV_FILE=/app/.env.test
     volumes:
       - ./auth_service:/app
     depends_on:
       - auth_Test_db
       - rabbitmq
-    networks:
-      - app-network
+    networks: [test-network]
 
   subscription_service:
     build:
       context: ./subscription_service
       dockerfile: Dockerfile
-
     ports:
       - "8004:8004"
     env_file:
        - ./subscription_service/.env.test
+    environment:
+      - ENV_FILE=/app/.env.test
     volumes:
       - ./subscription_service:/app
     depends_on:
       - subscribe_Test_db
       - rabbitmq
-    networks:
-      - app-network
+    networks: [test-network]
 
   admin_service:
     build:
       context: ./admin_service
       dockerfile: Dockerfile
-
     ports:
       - "8006:8006"
     env_file:
@@ -136,12 +124,10 @@ services:
     depends_on:
       - admin_Test_db
       - rabbitmq
-    networks:
-      - app-network
+    networks: [test-network]
 
   nginx:
     image: nginx:latest
-    container_name: nginx
     ports:
       - "80:80"
     volumes:
@@ -151,16 +137,15 @@ services:
       - admin_service
       - posts_service
       - subscription_service
-    networks:
-      - app-network
-
-networks:
-  app-network:
-    driver: bridge
+    networks: [test-network]
 
 volumes:
-  rabbitmq_data:
   posts_Test_db_data:
   auth_Test_db_data:
   subscribe_Test_db_data:
   admin_Test_db_data:
+  rabbitmq_data_test:
+
+networks:
+  test-network:
+    driver: bridge
