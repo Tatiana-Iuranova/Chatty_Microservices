@@ -7,8 +7,10 @@ from models import Subscription
 from database import get_db
 import httpx
 from faststream.rabbit.fastapi import RabbitRouter
+from faststream.rabbit import RabbitBroker
 from faststream.rabbit import RabbitQueue
 import logging
+from dependencies import get_current_user
 
 # Подключаем RabbitMQ через FastStream
 rabbit_router = RabbitRouter("amqp://guest:guest@rabbitmq:5672/")
@@ -18,11 +20,22 @@ USER_SUBSCRIBED_QUEUE = RabbitQueue("user_subscribed")
 USER_UNSUBSCRIBED_QUEUE = RabbitQueue("user_unsubscribed")
 
 # Настройка логирования
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
 # ----------- Бизнес-логика -----------
+
+async def connect_rabbit_broker():
+    try:
+        # Подключаем брокер только если он не подключен
+        if not rabbit_router.broker.is_open:
+            await rabbit_router.broker.connect()
+        logger.info("Подключение к RabbitMQ успешно.")
+    except Exception as e:
+        logger.error(f"Ошибка при подключении к RabbitMQ: {e}")
+        raise
 
 async def follow(db: AsyncSession, user_id: int, follower_id: int) -> SubscriptionResponse:
     if user_id == follower_id:
@@ -33,6 +46,9 @@ async def follow(db: AsyncSession, user_id: int, follower_id: int) -> Subscripti
     try:
         db.add(subscription)
         await db.commit()
+        # Подключаем RabbitMQ, если необходимо
+        await connect_rabbit_broker()
+
         await rabbit_router.broker.publish(
             {"user_id": user_id, "follower_id": follower_id},
             queue=USER_SUBSCRIBED_QUEUE
@@ -42,7 +58,9 @@ async def follow(db: AsyncSession, user_id: int, follower_id: int) -> Subscripti
     except IntegrityError:
         await db.rollback()
         raise ValueError("Вы уже подписаны")
-
+    except Exception as e:
+        logger.error(f"Ошибка подписки: {e}")
+        raise HTTPException(status_code=500, detail="Ошибка при обработке подписки")
 
 async def unfollow(db: AsyncSession, user_id: int, follower_id: int) -> dict:
     result = await db.execute(
@@ -55,13 +73,16 @@ async def unfollow(db: AsyncSession, user_id: int, follower_id: int) -> dict:
 
     await db.delete(subscription)
     await db.commit()
+
+    # Подключаем RabbitMQ, если необходимо
+    await connect_rabbit_broker()
+
     await rabbit_router.broker.publish(
         {"user_id": user_id, "follower_id": follower_id},
         queue=USER_UNSUBSCRIBED_QUEUE
     )
     logger.info(f"Отписка: {follower_id} от {user_id} выполнена.")
     return {"message": "Подписка удалена"}
-
 
 # ----------- Эндпоинты -----------
 
@@ -72,6 +93,7 @@ async def unfollow(db: AsyncSession, user_id: int, follower_id: int) -> dict:
     description="Позволяет пользователю подписаться на другого пользователя"
 )
 async def subscribe(
+    current_user: dict = Depends(get_current_user),
     user_id: int = Path(..., description="ID пользователя, на которого подписываются"),
     follower_id: int = Query(..., description="ID пользователя, который подписывается"),
     db: AsyncSession = Depends(get_db)
@@ -81,7 +103,11 @@ async def subscribe(
     except ValueError as e:
         logger.error(f"Ошибка подписки: {e}")
         raise HTTPException(status_code=400, detail=str(e))
-
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        logger.error(f"Неизвестная ошибка подписки: {e}")
+        raise HTTPException(status_code=500, detail="Ошибка при обработке подписки")
 
 @router.delete(
     "/unsubscribe/{user_id}",
@@ -89,6 +115,7 @@ async def subscribe(
     description="Позволяет пользователю отписаться от другого пользователя"
 )
 async def unsubscribe(
+    current_user: dict = Depends(get_current_user),
     user_id: int = Path(..., description="ID пользователя, от которого отписываются"),
     follower_id: int = Query(..., description="ID пользователя, который отписывается"),
     db: AsyncSession = Depends(get_db)
@@ -98,7 +125,9 @@ async def unsubscribe(
     except ValueError as e:
         logger.error(f"Ошибка отписки: {e}")
         raise HTTPException(status_code=400, detail=str(e))
-
+    except Exception as e:
+        logger.error(f"Неизвестная ошибка отписки: {e}")
+        raise HTTPException(status_code=500, detail="Ошибка при обработке отписки")
 
 @router.get(
     "/subscriptions",
@@ -107,6 +136,7 @@ async def unsubscribe(
     description="Получение ID пользователей, на которых подписан пользователь"
 )
 async def subscriptions(
+    current_user: dict = Depends(get_current_user),
     follower_id: int = Query(..., description="ID подписчика"),
     db: AsyncSession = Depends(get_db)
 ):
@@ -115,7 +145,6 @@ async def subscriptions(
     )
     return result.scalars().all()
 
-
 @router.get(
     "/followers/{user_id}",
     response_model=dict,
@@ -123,6 +152,7 @@ async def subscriptions(
     description="Получение ID пользователей, которые подписаны на пользователя"
 )
 async def followers(
+        current_user: dict = Depends(get_current_user),
         user_id: int = Path(..., description="ID пользователя"),
         db: AsyncSession = Depends(get_db)
 ):
@@ -131,7 +161,6 @@ async def followers(
     )
     return {"followers": result.scalars().all()}
 
-
 @router.get(
     "/feed/{user_id}",
     response_model=PostListResponse,
@@ -139,13 +168,12 @@ async def followers(
     description="Посты от пользователей, на которых подписан пользователь"
 )
 async def get_feed(
-    user_id: int = Path(..., description="ID пользователя"),
-    db: AsyncSession = Depends(get_db)
-):
-    result = await db.execute(
-        select(Subscription.user_id).where(Subscription.follower_id == user_id)
-    )
+    current_user: dict = Depends(get_current_user),
+    user_id: int = Path(..., description="ID пользователя"), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Subscription.user_id).where(Subscription.follower_id == user_id))
     subscribed_user_ids = result.scalars().all()
+
+    logger.info(f"Полученные ID пользователей: {subscribed_user_ids}")
 
     if not subscribed_user_ids:
         return {"posts": []}
@@ -154,16 +182,21 @@ async def get_feed(
         posts = []
         async with httpx.AsyncClient() as client:
             for uid in subscribed_user_ids:
+                logger.info(f"Запрос к постам пользователя {uid}")
                 response = await client.get(
                     "http://posts_service:8000/posts/by_user",
-                    params={"user_ids": subscribed_user_ids}   # передаем все user_ids
+                    params={"user_ids": subscribed_user_ids}  # передаем все user_ids
                 )
                 response.raise_for_status()
                 posts.extend(response.json())
 
+        logger.info(f"Полученные посты: {posts}")
         sorted_posts = sorted(posts, key=lambda x: x.get("created_at", ""), reverse=True)
         return {"posts": sorted_posts}
 
     except httpx.HTTPError as e:
         logger.error(f"Ошибка запроса к Posts service: {e}")
         raise HTTPException(status_code=502, detail=f"Posts service error: {str(e)}")
+    except Exception as e:
+        logger.error(f"Неизвестная ошибка при получении ленты: {e}")
+        raise HTTPException(status_code=500, detail="Ошибка при получении ленты постов")

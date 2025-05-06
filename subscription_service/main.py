@@ -18,6 +18,15 @@ app = FastAPI(
 # Подключаем маршруты из отдельных файлов
 app.include_router(subscription_router, prefix="/subscribe", tags=["subscribe"])
 
+# Создаем экземпляр RabbitRouter
+rabbit_router = RabbitRouter("amqp://guest:guest@rabbitmq:5672/")
+
+
+# Подключение к RabbitMQ
+async def connect_broker():
+    await rabbit_router.broker.connect()
+
+# Подключаем брокер при старте приложения
 @app.on_event("startup")
 async def startup_event():
     await rabbit_broker.connect()
