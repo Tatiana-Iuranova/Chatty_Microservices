@@ -1,9 +1,8 @@
 from fastapi import FastAPI
-from routers import admin_users
-from routers.admin_report import report_router
 from faststream.rabbit.fastapi import RabbitRouter, Logger
+from routers.admin_report import report_router
+from routers import admin_users
 from utils.messaging import rabbit_broker
-
 
 
 app = FastAPI(
@@ -15,7 +14,6 @@ app = FastAPI(
     root_path="/admin",
     root_path_in_servers=True
 )
-# Добавь prefix
 app.include_router(report_router, prefix="/report", tags=["Report"])
 app.include_router(admin_users.router,prefix="/admin", tags=["admin"])
 
@@ -30,6 +28,6 @@ async def shutdown_event():
 
 app.include_router(admin_users.router)
 
-@app.get("/")
 async def root():
     return {"msg": "Admin Service is alive"}
+
