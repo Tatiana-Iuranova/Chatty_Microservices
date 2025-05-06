@@ -1,105 +1,96 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.exc import SQLAlchemyError
-from pydantic import BaseModel
+from typing import List, Union
 from typing import List
 from models import Post
 from database import get_db
 from schemas import PostCreate, PostUpdate, PostInDB
-from fastapi import Query
-import logging
-import httpx
-import aio_pika  # Используем aio-pika для асинхронной работы с RabbitMQ
 
-# Настройка логирования
+import aio_pika
+import logging
+import json
+
 logger = logging.getLogger(__name__)
 
-# Конфигурация RabbitMQ (с использованием aio-pika)
-# async def get_rabbitmq_channel():
-#     connection = await aio_pika.connect_robust("amqp://guest:guest@rabbitmq:5672/")
-#     channel = await connection.channel()
-#     return channel
-
-# Создаём функцию для публикации события
-async def publish_post_created(post_data):
-    channel = await get_rabbitmq_channel()
-    exchange = await channel.declare_exchange('post_exchange', aio_pika.ExchangeType.FANOUT)
-    await exchange.publish(
-        aio_pika.Message(body=str(post_data).encode()),
-        routing_key='post.created'
-    )
-    await channel.close()
-
-# Инициализируем маршруты для постов
 post_router = APIRouter()
 
-# Создание поста
-@post_router.post(
-    "/",
-    response_model=PostInDB,
-    summary="Создать пост",
-    description="Позволяет пользователю создать пост"
-)
+
+# --- RabbitMQ ---
+RABBITMQ_URL = "amqp://guest:guest@rabbitmq:5672/"
+EXCHANGE_NAME = "post_exchange"
+ROUTING_KEY = "post.created"
+
+async def publish_to_rabbitmq(message: dict):
+    try:
+        connection = await aio_pika.connect_robust(RABBITMQ_URL)
+        channel = await connection.channel()
+
+        exchange = await channel.declare_exchange(EXCHANGE_NAME, aio_pika.ExchangeType.FANOUT)
+        body = json.dumps(message).encode()
+
+        await exchange.publish(
+            aio_pika.Message(body=body),
+            routing_key=ROUTING_KEY
+        )
+
+        await channel.close()
+        await connection.close()
+    except Exception as e:
+        logger.error(f"Ошибка при отправке сообщения в RabbitMQ: {e}")
+        # Можно не выбрасывать исключение, чтобы не прерывать основной флоу
+        raise
+
+
+#  --- Создание поста ---
+@post_router.post("/", response_model=PostInDB, summary="Создать пост")
 async def create_post(post: PostCreate, db: AsyncSession = Depends(get_db)):
     try:
-        logger.info(f"Запрос на создание поста получен с данными: {post.dict()}")
-
-        db_post = Post(**post.dict())
-        db.add(db_post)
+        new_post = Post(**post.dict())
+        db.add(new_post)
         await db.commit()
-        await db.refresh(db_post)
+        await db.refresh(new_post)
 
-        logger.info(f"Пост с ID {db_post.id} успешно создан.")
+        # Отправка события в RabbitMQ
+        await publish_to_rabbitmq({
+            "post_id": new_post.id,
+            "title": new_post.title,
+            "content": new_post.content
+        })
 
-        # Публикуем событие в RabbitMQ
-        await publish_post_created({"post_id": db_post.id, "title": db_post.title, "content": db_post.content})
-
-        logger.info(f"Событие для поста {db_post.id} опубликовано в RabbitMQ.")
-        return db_post
+        return new_post
 
     except SQLAlchemyError as e:
         await db.rollback()
-        logger.error(f"Ошибка при сохранении поста в БД: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Ошибка при создании поста")
+        logger.error(f"Ошибка БД при создании поста: {e}")
+        raise HTTPException(status_code=500, detail="Ошибка при создании поста")
 
-    except Exception as e:
-        logger.error(f"Ошибка при публикации события RabbitMQ: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Ошибка при публикации события")
 
-# Получение всех постов
-@post_router.get(
-    "/",
-    response_model=List[PostInDB],
-    summary="Получить список постов")
+# ---  Получение всех постов ---
+@post_router.get("/", response_model=List[PostInDB], summary="Получить все посты")
 async def get_all_posts(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Post))
-    posts = result.scalars().all()
-    return posts
+    return result.scalars().all()
 
-# Получение одного поста по ID
-@post_router.get(
-    "/{post_id}",
-    response_model=PostInDB,
-    summary="Получить конкретный пост")
 
+# --- Получение одного поста ---
+@post_router.get("/{post_id}", response_model=PostInDB, summary="Получить пост по ID")
 async def get_post(post_id: int, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Post).where(Post.id == post_id))
     post = result.scalars().first()
-    if post is None:
-        raise HTTPException(status_code=404, detail="Post not found")
+    if not post:
+        raise HTTPException(status_code=404, detail="Пост не найден")
     return post
 
-# Обновление поста
-@post_router.put(
-    "/{post_id}",
-    response_model=PostInDB,
-    summary="Редактировать пост")
+
+#  --- Обновление поста ---
+@post_router.put("/{post_id}", response_model=PostInDB, summary="Обновить пост")
 async def update_post(post_id: int, post: PostUpdate, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Post).filter(Post.id == post_id))
+    result = await db.execute(select(Post).where(Post.id == post_id))
     db_post = result.scalars().first()
-    if db_post is None:
-        raise HTTPException(status_code=404, detail="Post not found")
+    if not db_post:
+        raise HTTPException(status_code=404, detail="Пост не найден")
 
     for key, value in post.dict(exclude_unset=True).items():
         setattr(db_post, key, value)
@@ -108,31 +99,49 @@ async def update_post(post_id: int, post: PostUpdate, db: AsyncSession = Depends
     await db.refresh(db_post)
     return db_post
 
-# Удаление поста
-@post_router.delete(
-    "/{post_id}",
-    response_model=PostInDB,
-    summary="Удалить пост")
+
+# ---  Удаление поста ---
+@post_router.delete("/{post_id}", response_model=PostInDB, summary="Удалить пост")
 async def delete_post(post_id: int, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Post).filter(Post.id == post_id))
+    result = await db.execute(select(Post).where(Post.id == post_id))
     db_post = result.scalars().first()
-    if db_post is None:
-        raise HTTPException(status_code=404, detail="Post not found")
+    if not db_post:
+        raise HTTPException(status_code=404, detail="Пост не найден")
 
     await db.delete(db_post)
     await db.commit()
     return db_post
 
 
-@post_router.get(
-    "/posts/by_user",
-    response_model=List[PostInDB],
-    summary="Получить посты по пользователям")
+# # --- Получение постов по пользователям ---
+# @post_router.get(""
+#                  "/by_user",
+#                  response_model=List[PostInDB],
+#                  summary="Посты по пользователям")
+#
+# async def get_posts_by_users(
+#         user_ids: List[int] = Query(..., description="Список ID пользователей"),
+#         db: AsyncSession = Depends(get_db)
+# ):
+#     if not user_ids:
+#         raise HTTPException(status_code=400, detail="Не переданы user_ids")
+#
+#     # Запрос к базе данных, чтобы получить посты для этих пользователей
+#     result = await db.execute(select(Post).where(Post.user_id.in_(user_ids)))
+#     posts = result.scalars().all()
+#
+#     if not posts:
+#         raise HTTPException(status_code=404, detail="Посты не найдены для указанных пользователей")
+#
+#     return posts
 
-async def get_posts_by_users(
-        user_ids: List[int] = Query(..., description="Список идентификаторов пользователей для фильтрации постов"),
-        db: AsyncSession = Depends(get_db)
-):
-    result = await db.execute(select(Post).where(Post.user_id.in_(user_ids)))
+@post_router.get("/posts/by_user/{user_id}", response_model=List[PostInDB], summary="Получить посты пользователя")
+async def get_posts_by_user(user_id: int, db: AsyncSession = Depends(get_db)):
+    # Запрос к базе данных, чтобы получить все посты для пользователя с user_id
+    result = await db.execute(select(Post).where(Post.user_id == user_id))
     posts = result.scalars().all()
+
+    if not posts:
+        raise HTTPException(status_code=404, detail="Посты не найдены для данного пользователя")
+
     return posts
