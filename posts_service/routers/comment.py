@@ -4,6 +4,8 @@ from sqlalchemy.future import select
 from schemas import CommentBase, CommentCreate, CommentUpdate, CommentInDB
 from models import Comment
 from database import get_db
+from dependencies import get_current_user
+
 
 comment_router = APIRouter()
 
@@ -54,7 +56,8 @@ async def delete_comment(db: AsyncSession, comment_id: int) -> Comment | None:
 )
 async def create_comment_endpoint(
     comment: CommentCreate,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
     return await create_comment(db, comment)
 
@@ -67,7 +70,8 @@ async def create_comment_endpoint(
 )
 async def get_comments(
     post_id: int,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
     comments = await get_comments_by_post(db, post_id)
     return comments
@@ -82,7 +86,8 @@ async def get_comments(
 async def update_comment_endpoint(
     comment_id: int,
     comment: CommentUpdate,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
     db_comment = await update_comment(db, comment_id, comment)
     if db_comment is None:
@@ -98,7 +103,8 @@ async def update_comment_endpoint(
 )
 async def delete_comment_endpoint(
     comment_id: int,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
     db_comment = await delete_comment(db, comment_id)
     if db_comment is None:
