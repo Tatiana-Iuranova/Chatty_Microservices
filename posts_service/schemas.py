@@ -9,7 +9,7 @@ from typing import Optional, List
 class PostCreate(BaseModel):
     title: str
     content: str
-    user_id: int
+
 
 class PostUpdate(BaseModel):
     title: Optional[str] = Field(None, max_length=100)

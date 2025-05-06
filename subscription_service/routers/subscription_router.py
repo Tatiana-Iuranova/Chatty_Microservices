@@ -6,18 +6,8 @@ from schemas import SubscriptionResponse, PostListResponse
 from models import Subscription
 from database import get_db
 import httpx
-from faststream.rabbit.fastapi import RabbitRouter
-from faststream.rabbit import RabbitBroker
-from faststream.rabbit import RabbitQueue
 import logging
 from dependencies import get_current_user
-
-# Подключаем RabbitMQ через FastStream
-rabbit_router = RabbitRouter("amqp://guest:guest@rabbitmq:5672/")
-
-# Очереди как глобальные константы
-USER_SUBSCRIBED_QUEUE = RabbitQueue("user_subscribed")
-USER_UNSUBSCRIBED_QUEUE = RabbitQueue("user_unsubscribed")
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
@@ -27,37 +17,27 @@ router = APIRouter()
 
 # ----------- Бизнес-логика -----------
 
-async def connect_rabbit_broker():
-    try:
-        # Подключаем брокер только если он не подключен
-        if not rabbit_router.broker.is_open:
-            await rabbit_router.broker.connect()
-        logger.info("Подключение к RabbitMQ успешно.")
-    except Exception as e:
-        logger.error(f"Ошибка при подключении к RabbitMQ: {e}")
-        raise
-
 async def follow(db: AsyncSession, user_id: int, follower_id: int) -> SubscriptionResponse:
     if user_id == follower_id:
         raise ValueError("Нельзя подписаться на себя")
+
+    # Проверяем, не подписан ли пользователь уже
+    existing_subscription = await db.execute(
+        select(Subscription).filter_by(user_id=user_id, follower_id=follower_id)
+    )
+    if existing_subscription.scalars().first():
+        raise ValueError("Вы уже подписаны на этого пользователя")
 
     subscription = Subscription(user_id=user_id, follower_id=follower_id)
 
     try:
         db.add(subscription)
         await db.commit()
-        # Подключаем RabbitMQ, если необходимо
-        await connect_rabbit_broker()
-
-        await rabbit_router.broker.publish(
-            {"user_id": user_id, "follower_id": follower_id},
-            queue=USER_SUBSCRIBED_QUEUE
-        )
         logger.info(f"Подписка: {follower_id} на {user_id} успешно добавлена.")
         return SubscriptionResponse(user_id=user_id, follower_id=follower_id)
     except IntegrityError:
         await db.rollback()
-        raise ValueError("Вы уже подписаны")
+        raise ValueError("Ошибка подписки: возможно, вы уже подписаны")
     except Exception as e:
         logger.error(f"Ошибка подписки: {e}")
         raise HTTPException(status_code=500, detail="Ошибка при обработке подписки")
@@ -74,13 +54,6 @@ async def unfollow(db: AsyncSession, user_id: int, follower_id: int) -> dict:
     await db.delete(subscription)
     await db.commit()
 
-    # Подключаем RabbitMQ, если необходимо
-    await connect_rabbit_broker()
-
-    await rabbit_router.broker.publish(
-        {"user_id": user_id, "follower_id": follower_id},
-        queue=USER_UNSUBSCRIBED_QUEUE
-    )
     logger.info(f"Отписка: {follower_id} от {user_id} выполнена.")
     return {"message": "Подписка удалена"}
 
@@ -181,14 +154,12 @@ async def get_feed(
     try:
         posts = []
         async with httpx.AsyncClient() as client:
-            for uid in subscribed_user_ids:
-                logger.info(f"Запрос к постам пользователя {uid}")
-                response = await client.get(
-                    "http://posts_service:8000/posts/by_user",
-                    params={"user_ids": subscribed_user_ids}  # передаем все user_ids
-                )
-                response.raise_for_status()
-                posts.extend(response.json())
+            response = await client.get(
+                "http://posts_service:8000/posts/by_user",
+                params={"user_ids": ",".join(map(str, subscribed_user_ids))}
+            )
+            response.raise_for_status()
+            posts.extend(response.json())
 
         logger.info(f"Полученные посты: {posts}")
         sorted_posts = sorted(posts, key=lambda x: x.get("created_at", ""), reverse=True)

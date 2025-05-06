@@ -51,7 +51,7 @@ async def create_post(
         current_user: dict = Depends(get_current_user)
 ):
     try:
-        new_post = Post(**post.dict(), user_id=current_user["user_id"])
+        new_post = Post(**post.dict(exclude={"user_id"}), user_id=current_user["user_id"])
         db.add(new_post)
         await db.commit()
         await db.refresh(new_post)
