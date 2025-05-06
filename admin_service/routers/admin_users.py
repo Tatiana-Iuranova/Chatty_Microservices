@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from utils.auth_users import (
+from admin_service.utils.auth_users import (
     get_user, get_all_users, set_block_status, change_role, is_admin
 )
 from dependencies import get_current_user_id
