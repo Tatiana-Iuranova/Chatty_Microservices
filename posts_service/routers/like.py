@@ -4,6 +4,7 @@ from sqlalchemy.future import select
 from schemas import LikeBase,  LikeCreate, LikeInDB
 from models import Like
 from database import get_db
+from dependencies import get_current_user
 
 like_router = APIRouter()
 
@@ -47,7 +48,8 @@ async def delete_like(db: AsyncSession, post_id: int, user_id: int) -> Like | No
 )
 async def create_like_endpoint(
         like: LikeCreate,
-        db: AsyncSession = Depends(get_db)
+        db: AsyncSession = Depends(get_db),
+        current_user: dict = Depends(get_current_user)
 ):
     return await create_like(db, like)
 
@@ -62,7 +64,8 @@ async def create_like_endpoint(
 async def delete_like_endpoint(
         post_id: int,
         user_id: int,
-        db: AsyncSession = Depends(get_db)
+        db: AsyncSession = Depends(get_db),
+        current_user: dict = Depends(get_current_user)
 ):
     db_like = await delete_like(db, post_id, user_id)
     if db_like is None:

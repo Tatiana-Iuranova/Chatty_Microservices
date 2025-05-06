@@ -7,6 +7,7 @@ from typing import List
 from models import Post
 from database import get_db
 from schemas import PostCreate, PostUpdate, PostInDB
+from dependencies import get_current_user
 
 import aio_pika
 import logging
@@ -45,9 +46,12 @@ async def publish_to_rabbitmq(message: dict):
 
 #  --- Создание поста ---
 @post_router.post("/", response_model=PostInDB, summary="Создать пост")
-async def create_post(post: PostCreate, db: AsyncSession = Depends(get_db)):
+async def create_post(
+        post: PostCreate, db: AsyncSession = Depends(get_db),
+        current_user: dict = Depends(get_current_user)
+):
     try:
-        new_post = Post(**post.dict())
+        new_post = Post(**post.dict(), user_id=current_user["user_id"])
         db.add(new_post)
         await db.commit()
         await db.refresh(new_post)
@@ -56,7 +60,8 @@ async def create_post(post: PostCreate, db: AsyncSession = Depends(get_db)):
         await publish_to_rabbitmq({
             "post_id": new_post.id,
             "title": new_post.title,
-            "content": new_post.content
+            "content": new_post.content,
+            "user_id": new_post.user_id
         })
 
         return new_post
@@ -69,14 +74,14 @@ async def create_post(post: PostCreate, db: AsyncSession = Depends(get_db)):
 
 # ---  Получение всех постов ---
 @post_router.get("/", response_model=List[PostInDB], summary="Получить все посты")
-async def get_all_posts(db: AsyncSession = Depends(get_db)):
+async def get_all_posts(db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
     result = await db.execute(select(Post))
     return result.scalars().all()
 
 
 # --- Получение одного поста ---
 @post_router.get("/{post_id}", response_model=PostInDB, summary="Получить пост по ID")
-async def get_post(post_id: int, db: AsyncSession = Depends(get_db)):
+async def get_post(post_id: int, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
     result = await db.execute(select(Post).where(Post.id == post_id))
     post = result.scalars().first()
     if not post:
@@ -86,7 +91,7 @@ async def get_post(post_id: int, db: AsyncSession = Depends(get_db)):
 
 #  --- Обновление поста ---
 @post_router.put("/{post_id}", response_model=PostInDB, summary="Обновить пост")
-async def update_post(post_id: int, post: PostUpdate, db: AsyncSession = Depends(get_db)):
+async def update_post(post_id: int, post: PostUpdate, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
     result = await db.execute(select(Post).where(Post.id == post_id))
     db_post = result.scalars().first()
     if not db_post:
@@ -102,7 +107,7 @@ async def update_post(post_id: int, post: PostUpdate, db: AsyncSession = Depends
 
 # ---  Удаление поста ---
 @post_router.delete("/{post_id}", response_model=PostInDB, summary="Удалить пост")
-async def delete_post(post_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_post(post_id: int, db: AsyncSession = Depends(get_db),    current_user: dict = Depends(get_current_user)):
     result = await db.execute(select(Post).where(Post.id == post_id))
     db_post = result.scalars().first()
     if not db_post:
@@ -136,7 +141,8 @@ async def delete_post(post_id: int, db: AsyncSession = Depends(get_db)):
 #     return posts
 
 @post_router.get("/posts/by_user/{user_id}", response_model=List[PostInDB], summary="Получить посты пользователя")
-async def get_posts_by_user(user_id: int, db: AsyncSession = Depends(get_db)):
+async def get_posts_by_user(
+        user_id: int, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
     # Запрос к базе данных, чтобы получить все посты для пользователя с user_id
     result = await db.execute(select(Post).where(Post.user_id == user_id))
     posts = result.scalars().all()
