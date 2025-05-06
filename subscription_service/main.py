@@ -16,7 +16,7 @@ app = FastAPI(
 )
 
 # Подключаем маршруты из отдельных файлов
-app.include_router(subscription_router, prefix="/subscriptions", tags=["subscriptions"])
+app.include_router(subscription_router, prefix="/subscribe", tags=["subscribe"])
 
 @app.on_event("startup")
 async def startup_event():
