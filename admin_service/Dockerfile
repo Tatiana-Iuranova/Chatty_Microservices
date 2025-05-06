@@ -18,4 +18,6 @@ RUN chmod +x /app/docker-entrypoint.sh
 
 EXPOSE 8006
 
+ENV ENV_FILE="/app/.env.test"
+
 ENTRYPOINT ["/app/docker-entrypoint.sh"]

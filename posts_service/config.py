@@ -1,16 +1,18 @@
+import os
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from dotenv import load_dotenv
 
 # Загружаем общие переменные окружения
-load_dotenv(dotenv_path='.env.local', override=True)
+# Выбираем env-файл в зависимости от окружения (если передан переменной среды)
+env_file = os.getenv("ENV_FILE", ".env.local")
+load_dotenv(dotenv_path=env_file, override=True)
 
-# Теперь можно загрузить специфические для этого микросервиса переменные окружения
-load_dotenv(dotenv_path='./.env.local',
-            override=True)  # Для микросервиса admin_service
+
 
 class PostSettings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file='.env.local',
+        env_file=env_file,
         extra='ignore',
         case_sensitive=False
     )

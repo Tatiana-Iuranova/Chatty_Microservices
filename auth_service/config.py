@@ -1,17 +1,13 @@
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from dotenv import load_dotenv
 
-# Загружаем общие переменные окружения
-load_dotenv(dotenv_path='.env.local', override=True)
-
-# Теперь можно загрузить специфические для этого микросервиса переменные окружения
-load_dotenv(dotenv_path='./.env.local',
-            override=True)  # Для микросервиса auth_service
+load_dotenv(dotenv_path=".env.local", override=True)
 
 class AuthSettings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file='.env.local',
-        extra='ignore',
+        env_file=".env.local",
+        extra="ignore",
         case_sensitive=False
     )
 
@@ -21,11 +17,15 @@ class AuthSettings(BaseSettings):
     db_user: str
     db_password: str
 
+    secret_key: str
+    algorithm: str
+
     @property
     def async_database_url(self) -> str:
-        return f'postgresql+asyncpg://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}'
+        return f"postgresql+asyncpg://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"
 
 settings = AuthSettings()
+
 
 if __name__ == '__main__':
     print(settings.model_dump())

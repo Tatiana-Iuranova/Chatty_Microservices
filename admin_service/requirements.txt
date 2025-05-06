@@ -38,6 +38,7 @@ psycopg2-binary==2.9.10
 pyasn1==0.4.8
 pycparser==2.22
 pydantic==2.10.6
+pydantic[email]==2.10.6
 pydantic-settings==2.8.1
 pydantic_core==2.27.2
 pytest==8.3.5
@@ -54,3 +55,4 @@ typing_extensions==4.12.2
 uvicorn==0.34.0
 yarl==1.18.3
 openai==0.27.0
+email_validator==2.2.0

@@ -1,21 +1,13 @@
 from fastapi import Depends, HTTPException
-
-from jose import jwt, JWTError
-
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-
-from fastapi import Depends, HTTPException
-from jose import jwt, JWTError
-
+from jose import JWTError, jwt
+from config import settings
 
 oauth2_scheme = HTTPBearer()
 
-SECRET_KEY = "your_very_secure_secret_key" # обязательно должен совпадать с тем, что в auth_service
-ALGORITHM = "HS256"
-
-async def get_current_admin_user(
+async def get_current_user_id(
     credentials: HTTPAuthorizationCredentials = Depends(oauth2_scheme)
-):
+) -> int:
     token = credentials.credentials
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
@@ -25,7 +17,9 @@ async def get_current_admin_user(
         if not is_admin:
             raise HTTPException(status_code=403, detail="Недостаточно прав")
 
-        return {"user_id": user_id, "is_admin": True}
+        if not user_id:
+            raise HTTPException(status_code=401, detail="ID не найден")
 
+        return int(user_id)
     except JWTError:
         raise HTTPException(status_code=401, detail="Неверный токен")

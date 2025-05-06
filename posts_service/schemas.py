@@ -6,21 +6,22 @@ from typing import Optional, List
 # ---------------------------
 # Post Schemas
 # ---------------------------
-class PostBase(BaseModel):
-    title: str = Field(..., max_length=100)
+class PostCreate(BaseModel):
+    title: str
     content: str
-
-class PostCreate(PostBase):
     user_id: int
 
 class PostUpdate(BaseModel):
     title: Optional[str] = Field(None, max_length=100)
     content: Optional[str]
 
-class PostInDB(PostBase):
+class PostInDB(PostCreate):
     id: int
+    title: str
+    content: str
     user_id: int
     created_at: datetime
+
 
     model_config = ConfigDict(from_attributes=True)
 
