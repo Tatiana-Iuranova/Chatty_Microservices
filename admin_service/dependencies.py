@@ -3,12 +3,11 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from config import settings
 
-# Используем HTTP Bearer схему
 oauth2_scheme = HTTPBearer()
 
-async def get_current_admin_user(
+async def get_current_user_id(
     credentials: HTTPAuthorizationCredentials = Depends(oauth2_scheme)
-) -> dict:
+) -> int:
     token = credentials.credentials
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
@@ -21,6 +20,6 @@ async def get_current_admin_user(
         if not user_id:
             raise HTTPException(status_code=401, detail="ID не найден")
 
-        return {"user_id": int(user_id), "is_admin": True}
+        return int(user_id)
     except JWTError:
         raise HTTPException(status_code=401, detail="Неверный токен")
