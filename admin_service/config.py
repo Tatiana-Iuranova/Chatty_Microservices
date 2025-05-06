@@ -16,6 +16,10 @@ class AdminSettings(BaseSettings):
         case_sensitive=False
     )
 
+    # Обязательные поля для JWT
+    secret_key: str
+    algorithm: str = "HS256"
+
     # PostgreSQL database settings
 
     db_host: str

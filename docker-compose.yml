@@ -35,7 +35,7 @@ services:
     image: postgres:15.3
     container_name: posts_db
     ports:
-      - "5432:5432"
+      - "5437:5432"
     environment:
       POSTGRES_DB: posts_db
       POSTGRES_USER: postgres
@@ -99,7 +99,6 @@ services:
     volumes:
       - ./posts_service:/app
     depends_on:
-      - posts_db
       - rabbitmq
     networks:
       - app-network
@@ -133,7 +132,7 @@ services:
     volumes:
       - ./subscription_service:/app
     depends_on:
-      - subscribe_db
+      - posts_db
       - rabbitmq
     networks:
       - app-network

@@ -13,6 +13,7 @@
 
 8. when error try commands <#!/bin/bash> or <#!/usr/bin/env bash> in docker-entrypoint.sh
 
+
 docker builder prune -af
 docker-compose up -d --build
 

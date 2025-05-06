@@ -2,14 +2,17 @@ from fastapi import APIRouter, Depends, HTTPException
 from admin_service.utils.auth_users import (
     get_user, get_all_users, set_block_status, change_role, is_admin
 )
+from dependencies import get_current_user_id
+from schemas import UserOut
 
 router = APIRouter()
 
-# Заглушка для current_user
-async def get_current_user_id():
-    return 2  # представим, что это админ
 
-@router.get("/admin/users")
+
+from typing import List
+from schemas import UserOut  # путь зависит от структуры проекта
+
+@router.get("/admin/users", response_model=List[UserOut])
 async def list_users(current_user: int = Depends(get_current_user_id)):
     if not await is_admin(current_user):
         raise HTTPException(403, detail="Forbidden")
