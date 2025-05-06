@@ -1,14 +1,8 @@
-# admin_service/routers/admin_users.py
-from fastapi import APIRouter, Depends, HTTPException
 
+from fastapi import APIRouter, Depends, HTTPException
 from dependencies import get_current_admin_user
 from utils.auth_client import get_all_users, set_block_status, change_role
 from dependencies import get_current_admin_user
-=======
-from admin_service.utils.auth_users import (
-    get_user, get_all_users, set_block_status, change_role, is_admin
-)
-
 
 router = APIRouter()
 
