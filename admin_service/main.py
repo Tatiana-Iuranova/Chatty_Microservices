@@ -14,7 +14,6 @@ app = FastAPI(
     root_path="/admin",
     root_path_in_servers=True
 )
-
 app.include_router(report_router, prefix="/report", tags=["Report"])
 app.include_router(admin_users.router,prefix="/admin", tags=["admin"])
 
@@ -29,10 +28,6 @@ async def shutdown_event():
 
 app.include_router(admin_users.router)
 
-@app.get("/")
-async def read_root():
-    return {"message": "Welcome to the Admin Service API"}
-
-
-
+async def root():
+    return {"msg": "Admin Service is alive"}
 
